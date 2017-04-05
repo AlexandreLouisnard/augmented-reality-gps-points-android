@@ -8,7 +8,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 
@@ -122,9 +121,9 @@ public class Compass implements SensorEventListener {
             if (success) {
                 float orientation[] = new float[3];
                 SensorManager.getOrientation(R, orientation);
-                mAzimuthDegrees = ((float) Math.toDegrees(orientation[0]) + 360) % 360; // orientation
-                final Display display = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-                final int screenRotation = display.getRotation();
+                mAzimuthDegrees = (float) Math.toDegrees(orientation[0]);
+                // Correct azimuth value depending on screen orientation
+                final int screenRotation = (((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay()).getRotation();
                 if (screenRotation == Surface.ROTATION_90) {
                     mAzimuthDegrees += 90f;
                 } else if (screenRotation == Surface.ROTATION_180) {
@@ -132,6 +131,8 @@ public class Compass implements SensorEventListener {
                 } else if (screenRotation == Surface.ROTATION_270) {
                     mAzimuthDegrees += 270f;
                 }
+                // Force azimuth value between 0° and 360°.
+                mAzimuthDegrees = (mAzimuthDegrees + 360) % 360;
                 // Log.d(TAG, "mAzimuthDegrees=" + String.format("%.0f", mAzimuthDegrees));
                 mCompassListener.onAzimuthChanged(mAzimuthDegrees);
             }
