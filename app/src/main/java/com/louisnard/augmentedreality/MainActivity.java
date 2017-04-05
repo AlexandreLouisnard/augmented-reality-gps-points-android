@@ -12,6 +12,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
 /**
  * Main activity showing {@link Compass} data in a {@link CompassView}.
@@ -26,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements Compass.CompassLi
 
     // Views
     private CompassView mCompassView;
+    private TextView mGpsLocationTextView;
 
     // Compass
     private Compass mCompass;
@@ -45,16 +47,16 @@ public class MainActivity extends AppCompatActivity implements Compass.CompassLi
         setContentView(R.layout.activity_main);
 
         // Check permissions
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_PERMISSIONS);
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_PERMISSIONS);
             }
             Log.d(TAG, "Missing permissions.");
             return;
         }
 
         // Views
+        mGpsLocationTextView = (TextView) findViewById(R.id.text_view_gps_location);
         mCompassView = (CompassView) findViewById(R.id.compass_view);
 
         // Compass
@@ -66,6 +68,11 @@ public class MainActivity extends AppCompatActivity implements Compass.CompassLi
         // Location
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5, this);
+
+        // Check that GPS is enabled
+        if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            Log.d(TAG, "GPS is disabled.");
+        }
     }
 
     @Override
@@ -89,25 +96,26 @@ public class MainActivity extends AppCompatActivity implements Compass.CompassLi
     // LocationListener interface
     @Override
     public void onLocationChanged(Location location) {
-        Log.d(TAG, location.toString());
+        Log.d(TAG, "LocationListener.onLocationChanged()");
+        mGpsLocationTextView.setText(location.toString());
     }
 
     // LocationListener interface
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-
+        Log.d(TAG, "LocationListener.onStatusChanged()");
     }
 
     // LocationListener interface
     @Override
     public void onProviderEnabled(String provider) {
-
+        Log.d(TAG, "LocationListener.onProviderEnabled()");
     }
 
     // LocationListener interface
     @Override
     public void onProviderDisabled(String provider) {
-
+        Log.d(TAG, "LocationListener.onProviderDisabled()");
     }
 
     @Override
