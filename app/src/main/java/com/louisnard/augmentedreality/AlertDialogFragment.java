@@ -1,12 +1,12 @@
 package com.louisnard.augmentedreality;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 
 import static java.lang.annotation.ElementType.PACKAGE;
 
@@ -62,8 +62,6 @@ public class AlertDialogFragment extends DialogFragment implements DialogInterfa
         return newInstance(titleResId, messageResId, android.R.string.ok, 0);
     }
 
-
-
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         final Bundle arguments = getArguments();
@@ -88,9 +86,9 @@ public class AlertDialogFragment extends DialogFragment implements DialogInterfa
         final Fragment targetFragment = getTargetFragment();
         if (targetFragment != null) {
             if (which == DialogInterface.BUTTON_POSITIVE) {
-                targetFragment.onActivityResult(getTargetRequestCode(), AppCompatActivity.RESULT_OK, null);
+                targetFragment.onActivityResult(getTargetRequestCode(), Activity.RESULT_OK, null);
             } else if (which == DialogInterface.BUTTON_NEGATIVE) {
-                targetFragment.onActivityResult(getTargetRequestCode(), AppCompatActivity.RESULT_CANCELED, null);
+                targetFragment.onActivityResult(getTargetRequestCode(), Activity.RESULT_CANCELED, null);
             }
         }
     }

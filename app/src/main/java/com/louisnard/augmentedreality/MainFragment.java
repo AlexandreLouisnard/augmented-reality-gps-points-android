@@ -1,17 +1,19 @@
 package com.louisnard.augmentedreality;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +37,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
 
     // Location
     private LocationManager mLocationManager;
+    private Location mLocation;
 
     // Compass
     private Compass mCompass;
@@ -60,7 +63,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         }
 
         // Location
-        mLocationManager = (LocationManager) getActivity().getSystemService(AppCompatActivity.LOCATION_SERVICE);
+        mLocationManager = (LocationManager) getActivity().getSystemService(Activity.LOCATION_SERVICE);
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5, this);
 
         // Check that GPS is enabled
@@ -89,7 +92,6 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         // Views
         mGpsLocationTextView = (TextView) view.findViewById(R.id.text_view_gps_location);
         mCompassView = (CompassView) view.findViewById(R.id.compass_view);
-
     }
 
     @Override
@@ -117,8 +119,9 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     // LocationListener interface
     @Override
     public void onLocationChanged(Location location) {
-        Log.d(TAG, "LocationListener.onLocationChanged()");
-        mGpsLocationTextView.setText(location.toString());
+        mLocation = location;
+        Log.d(TAG, "LocationListener.onLocationChanged(): " + mLocation.toString());
+        mGpsLocationTextView.setText(mLocation.toString());
     }
 
     // LocationListener interface
@@ -137,6 +140,18 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     @Override
     public void onProviderDisabled(String provider) {
         Log.d(TAG, "LocationListener.onProviderDisabled()");
+        showEnableGpsAlertDialog();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_ENABLE_GPS:
+                if (resultCode == Activity.RESULT_OK) {
+                    startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                }
+                break;
+        }
     }
 
     @Override
@@ -150,6 +165,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         }
     }
 
+    // Display an alert dialog asking the user to enable the GPS
     private void showEnableGpsAlertDialog() {
         mAlertDialogFragment = AlertDialogFragment.newInstance(R.string.alert_dialog_title_gps, R.string.alert_dialog_message_enable_gps, android.R.string.ok, android.R.string.cancel);
         mAlertDialogFragment.setTargetFragment(this, REQUEST_ENABLE_GPS);

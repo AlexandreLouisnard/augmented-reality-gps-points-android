@@ -28,6 +28,5 @@ public class MainActivity extends AppCompatActivity {
             transaction.replace(R.id.fragment, new MainFragment());
             transaction.commit();
         }
-
     }
 }
