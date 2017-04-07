@@ -1,4 +1,4 @@
-package com.louisnard.augmentedreality;
+package com.louisnard.augmentedreality.model.objects;
 
 /**
  * Class that holds a point.
@@ -62,5 +62,24 @@ public class Point {
 
     public void setElevation(float elevation) {
         mElevation = elevation;
+    }
+
+    // Distance calculation
+    public long getHorizontalDistanceWith(Point point) {
+        long distance = 0;
+        // TODO
+        return distance;
+    }
+
+    public long get3DDistanceWith(Point point) {
+        long distance = 0;
+        // TODO
+        return distance;
+    }
+
+    public float getAzimuthOf(Point point) {
+        float azimuth = 0;
+        // TODO
+        return azimuth;
     }
 }

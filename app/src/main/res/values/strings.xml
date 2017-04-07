@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AR GPS points</string>
+    <string name="app_name">Augmented Reality GPS Points</string>
 
     <string name="alert_dialog_title_gps">GPS</string>
     <string name="alert_dialog_message_enable_gps">Your device GPS is currently disabled. Please enable it.</string>

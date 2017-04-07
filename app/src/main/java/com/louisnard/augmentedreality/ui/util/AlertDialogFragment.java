@@ -1,4 +1,4 @@
-package com.louisnard.augmentedreality;
+package com.louisnard.augmentedreality.ui.util;
 
 import android.app.Activity;
 import android.app.Dialog;

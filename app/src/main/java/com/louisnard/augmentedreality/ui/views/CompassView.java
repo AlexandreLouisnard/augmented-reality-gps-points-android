@@ -1,4 +1,4 @@
-package com.louisnard.augmentedreality;
+package com.louisnard.augmentedreality.ui.views;
 
 import android.content.Context;
 import android.graphics.Bitmap;

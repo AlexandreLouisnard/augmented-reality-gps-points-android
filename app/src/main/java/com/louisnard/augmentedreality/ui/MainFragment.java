@@ -1,9 +1,11 @@
-package com.louisnard.augmentedreality;
+package com.louisnard.augmentedreality.ui;
 
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -20,6 +22,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.louisnard.augmentedreality.DevUtils;
+import com.louisnard.augmentedreality.R;
+import com.louisnard.augmentedreality.model.Compass;
+import com.louisnard.augmentedreality.model.database.DbContract;
+import com.louisnard.augmentedreality.model.database.DbHelper;
+import com.louisnard.augmentedreality.model.objects.Point;
+import com.louisnard.augmentedreality.ui.util.AlertDialogFragment;
+import com.louisnard.augmentedreality.ui.views.CompassView;
+
 /**
  * Main fragment showing {@link Compass} data in a {@link CompassView}.
  *
@@ -33,7 +44,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
 
     // Views
     private CompassView mCompassView;
-    private TextView mGpsLocationTextView;
+    private TextView mLocationTextView;
 
     // Location
     private LocationManager mLocationManager;
@@ -41,9 +52,6 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
 
     // Compass
     private Compass mCompass;
-
-    // Dialogs
-    private AlertDialogFragment mAlertDialogFragment;
 
     // Request codes
     private final int REQUEST_PERMISSIONS = 1;
@@ -73,7 +81,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         }
 
         // Compass
-        mCompass = Compass.getInstance(getActivity(), this);
+        mCompass = Compass.newInstance(getActivity(), this);
         if (mCompass == null) {
             Log.d(TAG, "The device does not have the required sensors to use a augmentedreality.");
         }
@@ -90,7 +98,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         super.onViewCreated(view, savedInstanceState);
 
         // Views
-        mGpsLocationTextView = (TextView) view.findViewById(R.id.text_view_gps_location);
+        mLocationTextView = (TextView) view.findViewById(R.id.text_view_location);
         mCompassView = (CompassView) view.findViewById(R.id.compass_view);
     }
 
@@ -98,8 +106,27 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     public void onResume() {
         super.onResume();
 
+        // For test use only : dump database
+        DevUtils.exportDatabaseToExternalStorage(getActivity(), DbHelper.getDbName());
+
         // Start compass
         if (mCompass != null) mCompass.start();
+
+        // TODO: TEST USE ONLY
+        final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
+        final Point point = new Point("montblanc", 1.0f, 2.0f, 1.0f);
+        dbHelper.addPoint(point);
+
+        final SQLiteDatabase db = DbHelper.getInstance(getActivity().getApplicationContext()).getWritableDatabase();
+
+        Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, new String[] {DbContract.PointsColumns.COLUMN_NAME}, null, null, null, null, null);
+
+        while (cursor.moveToNext()) {
+            String name = cursor.getString(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_NAME));
+            Log.d(TAG, "Name : " + name);
+        }
+        cursor.close();
+
     }
 
     @Override
@@ -121,7 +148,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     public void onLocationChanged(Location location) {
         mLocation = location;
         Log.d(TAG, "LocationListener.onLocationChanged(): " + mLocation.toString());
-        mGpsLocationTextView.setText(mLocation.toString());
+        mLocationTextView.setText(mLocation.toString());
     }
 
     // LocationListener interface
@@ -167,8 +194,8 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
 
     // Display an alert dialog asking the user to enable the GPS
     private void showEnableGpsAlertDialog() {
-        mAlertDialogFragment = AlertDialogFragment.newInstance(R.string.alert_dialog_title_gps, R.string.alert_dialog_message_enable_gps, android.R.string.ok, android.R.string.cancel);
-        mAlertDialogFragment.setTargetFragment(this, REQUEST_ENABLE_GPS);
-        mAlertDialogFragment.show(getFragmentManager(), AlertDialogFragment.TAG);
+        AlertDialogFragment alertDialogFragment = AlertDialogFragment.newInstance(R.string.alert_dialog_title_gps, R.string.alert_dialog_message_enable_gps, android.R.string.ok, android.R.string.cancel);
+        alertDialogFragment.setTargetFragment(this, REQUEST_ENABLE_GPS);
+        alertDialogFragment.show(getFragmentManager(), AlertDialogFragment.TAG);
     }
 }

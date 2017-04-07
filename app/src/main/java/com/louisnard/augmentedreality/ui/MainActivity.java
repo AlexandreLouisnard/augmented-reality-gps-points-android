@@ -1,8 +1,10 @@
-package com.louisnard.augmentedreality;
+package com.louisnard.augmentedreality.ui;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+
+import com.louisnard.augmentedreality.R;
 
 /**
  * Main activity showing a {@link android.support.v4.app.Fragment}.
