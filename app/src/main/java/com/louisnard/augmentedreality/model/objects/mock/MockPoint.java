@@ -19,7 +19,10 @@ public class MockPoint {
             new Point("Mont Jalla", 45.2041f, 5.7242f, 635),
             new Point("Appartement du développeur :-)", 45.1916626f, 5.7385538f, 250),
             new Point("Moucherotte", 45.1472f, 5.6382f, 1901),
-            new Point("Mont Blanc", 45.8326f, 6.8652f, 4810)));
+            new Point("Mont Blanc", 45.8326f, 6.8652f, 4810),
+            new Point("Pôle Nord", 90, 0, 0),
+            new Point("Pôle Sud", -90, 0, 0)
+            ));
 
     /**
      * Returns a list of mock points.

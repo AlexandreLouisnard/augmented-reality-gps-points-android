@@ -110,10 +110,17 @@ public class DbHelper extends SQLiteOpenHelper {
      * @param distance the half-size of the square around the {@link Point} where the points have to be located.
      * @return the {@link List<Point>} of all points located around the specified {@link Point}.
      */
-    /*public List<Point> getPointsAround(Point point, long distance) {
-        final float latMin = point.getLatitude();
+    public List<Point> getPointsAround(Point point, long distance) {
+        // Delimitate the square within which to find points
+        final String latMin = String.valueOf((point.getLatitude() - Point.metersToDegrees(distance)) % 360);
+        final String latMax = String.valueOf((point.getLatitude() + Point.metersToDegrees(distance)) % 360);
+        final String lonMin = String.valueOf((point.getLongitude() - Point.metersToDegrees(distance)) % 360);
+        final String lonMax = String.valueOf((point.getLongitude() + Point.metersToDegrees(distance)) % 360);
+        // Read database
         final SQLiteDatabase db = getWritableDatabase();
-        final Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, null, DbContract.PointsColumns.COLUMN_LATITUDE <=, null, null, null, null);
+        final Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, null,
+                DbContract.PointsColumns.COLUMN_LATITUDE + " >= ? AND " + DbContract.PointsColumns.COLUMN_LATITUDE + " <= ? AND " + DbContract.PointsColumns.COLUMN_LONGITUDE + " >= ? AND " + DbContract.PointsColumns.COLUMN_LONGITUDE + " <= ?",
+                new String[] {latMin, latMax, lonMin, lonMax}, null, null, null);
         final List<Point> points = new ArrayList<>();
         while (cursor.moveToNext()) {
             points.add(new Point(cursor));
@@ -121,7 +128,7 @@ public class DbHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return points;
-    }*/
+    }
 
     /**
      * Adds the specified {@link Point} to the {@link SQLiteDatabase}.

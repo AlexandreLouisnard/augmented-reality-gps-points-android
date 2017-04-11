@@ -206,5 +206,23 @@ public class PointTest {
         assertEquals(distance, a.calculateDistanceWith(b, false), distance*ERROR_TOLERANCE);
         assertEquals(a.calculateDistanceWith(b, true), b.calculateDistanceWith(a, true));
         assertEquals(a.calculateDistanceWith(b, false), b.calculateDistanceWith(a, false));
+
+        a = new Point("Appartement du développeur :-)", 45.1916626f, 5.7385538f, 245);
+        b = new Point("Appartement du développeur", 45.1916626f + 360, 5.7385538f - 360, 245);
+        flatDistance = 0;
+        distance = 0;
+        assertEquals(flatDistance, a.calculateDistanceWith(b, true), 1);
+        assertEquals(distance, a.calculateDistanceWith(b, false), 1);
+        assertEquals(a.calculateDistanceWith(b, true), b.calculateDistanceWith(a, true));
+        assertEquals(a.calculateDistanceWith(b, false), b.calculateDistanceWith(a, false));
+
+        a = new Point("Appartement du développeur :-)", 45.1916626f, 5.7385538f, 245);
+        b = new Point("Antipodes", 45.1916626f - 180, 5.7385538f, 245);
+        flatDistance = 20020000;
+        distance = 20020000;
+        assertEquals(flatDistance, a.calculateDistanceWith(b, true), flatDistance*ERROR_TOLERANCE);
+        assertEquals(distance, a.calculateDistanceWith(b, false), distance*ERROR_TOLERANCE);
+        assertEquals(a.calculateDistanceWith(b, true), b.calculateDistanceWith(a, true));
+        assertEquals(a.calculateDistanceWith(b, false), b.calculateDistanceWith(a, false));
     }
 }
