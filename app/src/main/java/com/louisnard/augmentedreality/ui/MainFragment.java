@@ -113,20 +113,11 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         // Start compass
         if (mCompass != null) mCompass.start();
 
-        // TODO: TEST USE ONLY
+        // TODO: FOR TEST USE ONLY: populate database
         final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
-
         dbHelper.clearTable(DbContract.PointsColumns.TABLE_NAME);
         final List<Point> points = MockPoint.getPoints();
-        dbHelper.addPoints(points);
-        final List<Point> resultPoints = dbHelper.getAllPoints();
-
-        for (Point point : resultPoints) {
-            Log.d(TAG, "Point: " + point.getName() + ", " + point.getLatitude() + ", " + point.getLongitude() + ", " + point.getElevation());
-        }
-
-        Log.d(TAG, "Distance between: " + points.get(0).getName() + " and " + points.get(1).getName() + " = " + points.get(0).getDistanceWith(points.get(1), false));
-
+        dbHelper.addPoints(MockPoint.getPoints());
     }
 
     @Override

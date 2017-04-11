@@ -104,12 +104,14 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Gets the {@link List<Point>} of all points from the {@link SQLiteDatabase} located within a certain distance around a specified {@link Point}.
+     * Gets the {@link List<Point>} of all points from the {@link SQLiteDatabase} around the specified {@link Point}.
+     * Actually, the points are located in a square of size 2x{@param distance} and centered on the specified {@param point}.
      * @param point the {@link Point} around which the points have to be located.
-     * @param distance the maximum distance around the {@link Point} where the points have to be located.
+     * @param distance the half-size of the square around the {@link Point} where the points have to be located.
      * @return the {@link List<Point>} of all points located around the specified {@link Point}.
      */
-    /*TODO public List<Point> getPointsAround(Point point, long distance) {
+    /*public List<Point> getPointsAround(Point point, long distance) {
+        final float latMin = point.getLatitude();
         final SQLiteDatabase db = getWritableDatabase();
         final Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, null, DbContract.PointsColumns.COLUMN_LATITUDE <=, null, null, null, null);
         final List<Point> points = new ArrayList<>();

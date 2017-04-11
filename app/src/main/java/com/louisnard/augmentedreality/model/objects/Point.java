@@ -5,7 +5,7 @@ import android.database.Cursor;
 import com.louisnard.augmentedreality.model.database.DbContract;
 
 /**
- * Class that holds a point.
+ * Class that holds a point and its coordinates.
  *
  * @author Alexandre Louisnard
  */
@@ -24,6 +24,26 @@ public class Point {
     // The Earth mean radius in meters
     private static double EARTH_RADIUS = 6371000;
 
+    // Static helper methods
+    /**
+     * Helper method that calculates the great-circle distance (in meters) over the earth’s surface associated to a latitude or longitude difference (in degrees).
+     * @param degrees the latitude or longitude difference (in degrees).
+     * @return the distance (in meters).
+     */
+    public static long degreesToMeters(float degrees) {
+        return (long) Math.abs(degrees % 360 * 2 * Math.PI * EARTH_RADIUS / 360);
+    }
+
+    /**
+     * Helper method that calculates the latitude or longitude difference (in degrees) associated to a great-circle distance (in meters) over the earth’s surface.
+     * @param distance the distance (in meters).
+     * @return the latitude or longitude difference (in degrees).
+     */
+    public static float metersToDegrees(long distance) {
+        return (float) ((distance * 360 / (2 * Math.PI * EARTH_RADIUS)) % 360);
+    }
+
+    // Constructors
     /**
      * Constructs a new instance of {@link Point}.
      * @param latitude the latitude in degrees.
@@ -33,8 +53,8 @@ public class Point {
      */
     public Point(String name, float latitude, float longitude, int elevation) {
         mName = name;
-        mLatitude = latitude;
-        mLongitude = longitude;
+        mLatitude = latitude % 360;
+        mLongitude = longitude % 360;
         mElevation = elevation;
     }
 
@@ -45,8 +65,8 @@ public class Point {
     public Point(Cursor cursor) {
         if (cursor != null) {
             mName = cursor.getString(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_NAME));
-            mLatitude = cursor.getFloat(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_LATITUDE));
-            mLongitude = cursor.getFloat(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_LONGITUDE));
+            mLatitude = (cursor.getFloat(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_LATITUDE))) % 360;
+            mLongitude = (cursor.getFloat(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_LONGITUDE))) % 360;
             mElevation = cursor.getInt(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_ELEVATION));
         }
     }
@@ -90,7 +110,7 @@ public class Point {
      * @param latitude the latitude in degrees.
      */
     public void setLatitude(float latitude) {
-        mLatitude = latitude;
+        mLatitude = latitude % 360;
     }
 
     /**
@@ -98,7 +118,7 @@ public class Point {
      * @param longitude the latitude in degrees.
      */
     public void setLongitude(float longitude) {
-        mLongitude = longitude;
+        mLongitude = longitude % 360;
     }
 
     /**
@@ -111,14 +131,14 @@ public class Point {
 
     // Calculations
     /**
-     * Calculates the great-circle distance (in meters) between this {@link Point} and the specified {@link Point} parameter.
-     * That is, the shortest distance over the earth’s surface – giving an "as-the-crow-flies" distance between the points (ignoring any hills they fly over, of course!)
+     * Calculates the great-circle distance (in meters) over the earth’s surface between this {@link Point} and the specified {@link Point} parameter.
+     * That is, the shortest distance "as-the-crow-flies" between the points (ignoring any hills they fly over, of course!)
      * Uses the Haversine formula.
      * @param point the {@link Point} to calculate the distance with.
      * @param ignoreHeightDifference <b>true</b> to ignore the height difference in the calculation. <b>false</b> to take it into account.
-     * @return the distance expressed in meters.
+     * @return the distance (in meters).
      */
-    public long getDistanceWith(Point point, boolean ignoreHeightDifference) {
+    public long calculateDistanceWith(Point point, boolean ignoreHeightDifference) {
         float lat1 = getLatitude();
         float lon1 = getLongitude();
         int el1 = getElevation();
@@ -146,9 +166,9 @@ public class Point {
      * Calculates the azimuth (in degrees) between a meridian and the smooth curve connecting this {@link Point} and the specified {@link Point} parameter.
      * The azimuth is the angle at which a smooth curve crosses a meridian, taken clockwise from north. The North Pole has an azimuth of 0º from every other point on the globe.
      * @param point the {@link Point} to calculate the azimuth with.
-     * @return the azimuth expressed in degrees, taken clockwise from north, from 0° to 360°.
+     * @return the azimuth (in degrees), taken clockwise from north, from 0° to 360°.
      */
-    public float getAzimuthOf(Point point) {
+    public float calculateAzimuthOf(Point point) {
         float azimuth = 0;
         // TODO
         return azimuth;
