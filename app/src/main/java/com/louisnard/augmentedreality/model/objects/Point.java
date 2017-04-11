@@ -1,5 +1,9 @@
 package com.louisnard.augmentedreality.model.objects;
 
+import android.database.Cursor;
+
+import com.louisnard.augmentedreality.model.database.DbContract;
+
 /**
  * Class that holds a point.
  *
@@ -28,6 +32,19 @@ public class Point {
         mLatitude = latitude;
         mLongitude = longitude;
         mElevation = elevation;
+    }
+
+    /**
+     * Constructs a new instance of {@link Point} from a {@link Cursor}.
+     * @param cursor the {@link Cursor} to read the data from.
+     */
+    public Point(Cursor cursor) {
+        if (cursor != null) {
+            mName = cursor.getString(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_NAME));
+            mLatitude = cursor.getFloat(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_LATITUDE));
+            mLongitude = cursor.getFloat(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_LONGITUDE));
+            mElevation = cursor.getFloat(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_ELEVATION));
+        }
     }
 
     // Getters

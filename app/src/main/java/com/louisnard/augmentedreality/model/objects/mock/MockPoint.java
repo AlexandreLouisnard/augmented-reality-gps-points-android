@@ -1,4 +1,4 @@
-package com.louisnard.augmentedreality;
+package com.louisnard.augmentedreality.model.objects.mock;
 
 
 
@@ -9,13 +9,11 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Test class that provides a list of mock points: {@link List<Point>}.
+ * Provides {@link Point} mock data for debug use only.
  *
  * @author Alexandre Louisnard
  */
-
-public class MockPoints {
-
+public class MockPoint {
     private static List<Point> mPoints = new ArrayList<>(Arrays.asList(new Point("Fort de La Bastille", 45.1987f, 5.7253f, 476),
             new Point("Mont Rachais", 45.2417f, 5.7436f, 1046),
             new Point("Mont Jalla", 45.2041f, 5.7242f, 635),

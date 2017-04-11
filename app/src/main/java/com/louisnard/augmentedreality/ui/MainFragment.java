@@ -4,8 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -25,11 +23,14 @@ import android.widget.TextView;
 import com.louisnard.augmentedreality.DevUtils;
 import com.louisnard.augmentedreality.R;
 import com.louisnard.augmentedreality.model.Compass;
+import com.louisnard.augmentedreality.model.objects.mock.MockPoint;
 import com.louisnard.augmentedreality.model.database.DbContract;
 import com.louisnard.augmentedreality.model.database.DbHelper;
 import com.louisnard.augmentedreality.model.objects.Point;
 import com.louisnard.augmentedreality.ui.util.AlertDialogFragment;
 import com.louisnard.augmentedreality.ui.views.CompassView;
+
+import java.util.List;
 
 /**
  * Main fragment showing {@link Compass} data in a {@link CompassView}.
@@ -114,18 +115,15 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
 
         // TODO: TEST USE ONLY
         final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
-        final Point point = new Point("montblanc", 1.0f, 2.0f, 1.0f);
-        dbHelper.addPoint(point);
 
-        final SQLiteDatabase db = DbHelper.getInstance(getActivity().getApplicationContext()).getWritableDatabase();
+        dbHelper.clearTable(DbContract.PointsColumns.TABLE_NAME);
+        final List<Point> points = MockPoint.getPoints();
+        dbHelper.addPoints(points);
+        final List<Point> resultPoints = dbHelper.getAllPoints();
 
-        Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, new String[] {DbContract.PointsColumns.COLUMN_NAME}, null, null, null, null, null);
-
-        while (cursor.moveToNext()) {
-            String name = cursor.getString(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_NAME));
-            Log.d(TAG, "Name : " + name);
+        for (Point point : resultPoints) {
+            Log.d(TAG, "Point: " + point.getName() + ", " + point.getLatitude() + ", " + point.getLongitude() + ", " + point.getElevation());
         }
-        cursor.close();
 
     }
 
