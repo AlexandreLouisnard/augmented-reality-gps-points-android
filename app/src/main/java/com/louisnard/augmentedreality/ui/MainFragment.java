@@ -125,6 +125,8 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
             Log.d(TAG, "Point: " + point.getName() + ", " + point.getLatitude() + ", " + point.getLongitude() + ", " + point.getElevation());
         }
 
+        Log.d(TAG, "Distance between: " + points.get(0).getName() + " and " + points.get(1).getName() + " = " + points.get(0).getDistanceWith(points.get(1), false));
+
     }
 
     @Override

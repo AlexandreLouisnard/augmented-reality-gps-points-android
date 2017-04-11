@@ -36,7 +36,7 @@ public class DbHelper extends SQLiteOpenHelper {
             + DbContract.PointsColumns.COLUMN_NAME + " TEXT,"
             + DbContract.PointsColumns.COLUMN_LATITUDE + " REAL,"
             + DbContract.PointsColumns.COLUMN_LONGITUDE + " REAL,"
-            + DbContract.PointsColumns.COLUMN_ELEVATION + " REAL)";
+            + DbContract.PointsColumns.COLUMN_ELEVATION + " INTEGER)";
 
     /**
      * Constructs a new instance of {@link DbHelper}.
@@ -92,7 +92,6 @@ public class DbHelper extends SQLiteOpenHelper {
      * @return the {@link List<Point>}.
      */
     public List<Point> getAllPoints() {
-        // Read all points from the database
         final SQLiteDatabase db = getWritableDatabase();
         final Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, null, null, null, null, null, null);
         final List<Point> points = new ArrayList<>();
@@ -110,11 +109,17 @@ public class DbHelper extends SQLiteOpenHelper {
      * @param distance the maximum distance around the {@link Point} where the points have to be located.
      * @return the {@link List<Point>} of all points located around the specified {@link Point}.
      */
-    public List<Point> getPointsAround(Point point, long distance) {
+    /*TODO public List<Point> getPointsAround(Point point, long distance) {
+        final SQLiteDatabase db = getWritableDatabase();
+        final Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, null, DbContract.PointsColumns.COLUMN_LATITUDE <=, null, null, null, null);
         final List<Point> points = new ArrayList<>();
-        // TODO
+        while (cursor.moveToNext()) {
+            points.add(new Point(cursor));
+        }
+        cursor.close();
+        db.close();
         return points;
-    }
+    }*/
 
     /**
      * Adds the specified {@link Point} to the {@link SQLiteDatabase}.
