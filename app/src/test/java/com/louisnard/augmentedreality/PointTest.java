@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 public class PointTest {
 
     // Error tolerance for calculations
-    private final static float ERROR_TOLERANCE = 0.001f;
+    private final static double ERROR_TOLERANCE = 0.001;
     
     // Static methods testing
     /**

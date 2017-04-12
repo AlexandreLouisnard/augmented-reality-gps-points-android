@@ -101,8 +101,8 @@ public class Point {
     public Point(String name, double latitude, double longitude, double altitude) {
         mName = name;
         mLocation = new Location("");
-        mLocation.setLatitude(latitude);
-        mLocation.setLongitude(longitude);
+        mLocation.setLatitude(getValidLatitude(latitude));
+        mLocation.setLongitude(getValidLongitude(longitude));
         mLocation.setAltitude(altitude);
     }
 
@@ -182,7 +182,7 @@ public class Point {
      * @param latitude the latitude in degrees.
      */
     public void setLatitude(double latitude) {
-        mLocation.setLatitude(latitude);
+        mLocation.setLatitude(getValidLatitude(latitude));
     }
 
     /**
@@ -190,7 +190,7 @@ public class Point {
      * @param longitude the latitude in degrees.
      */
     public void setLongitude(double longitude) {
-        mLocation.setLongitude(longitude);
+        mLocation.setLongitude(getValidLongitude(longitude));
     }
 
     /**
@@ -211,14 +211,14 @@ public class Point {
     }
 
     /**
-     * Calculates the azimuth (in degrees) between a meridian and the smooth curve connecting this {@link Point} and the specified {@link Point} parameter.
+     * Calculates the azimuth (in degrees) between a meridian and the smooth curve connecting this {@link Point} and a given {@link Point} parameter.
      * The azimuth is the angle at which a smooth curve crosses a meridian, taken clockwise from north. The North Pole has an azimuth of 0º from every other point on the globe.
      * @param point the {@link Point} to calculate the azimuth with.
      * @return the azimuth (in degrees), taken clockwise from north, from 0° to 360°.
      */
-    public float calculateAzimuthOf(Point point) {
+    public float azimuthTo(Point point) {
         float azimuth = 0;
-        // TODO
+
         return azimuth;
     }
 }

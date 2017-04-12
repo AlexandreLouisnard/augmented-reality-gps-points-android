@@ -2,6 +2,7 @@ package com.louisnard.augmentedreality;
 
 import android.location.Location;
 
+import com.louisnard.augmentedreality.mock.MockPoint;
 import com.louisnard.augmentedreality.model.objects.Point;
 
 import org.junit.Test;
@@ -19,6 +20,8 @@ public class PointAndroidTest {
 
     // Error tolerance for calculations
     private final static double ERROR_TOLERANCE = 0.03;
+
+    // Points
 
     // Constructor, getters and setters testing
     /**
@@ -61,82 +64,70 @@ public class PointAndroidTest {
         Point b;
         double distance;
 
-        a = new Point("Point 0", 0, 0, 0);
-        b = new Point("Pôle Nord", 90, 0, 0);
+        a = MockPoint.mZeroPoint;
+        b = MockPoint.mZeroPoint;
+        distance = 0;
+        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * Point.EARTH_RADIUS);
+        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+
+        a = MockPoint.mZeroPoint;
+        b = MockPoint.mNorthPolePoint;
         distance = 2 * Math.PI * Point.EARTH_RADIUS / 4;
         assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
 
-        a = new Point("Developer's home :-)", 45.1916626, 5.7385538, 245);
-        b = new Point("Pôle Nord", 90, 0, 0);
+        a = MockPoint.mZeroPoint;
+        b = MockPoint.mSouthPolePoint;
+        distance = 2 * Math.PI * Point.EARTH_RADIUS / 4;
+        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
+        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+
+
+        a = MockPoint.mZeroPoint;
+        b = MockPoint.mZeroAntipodesPoint;
+        distance = 2 * Math.PI * Point.EARTH_RADIUS / 2;
+        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
+        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+
+        a = MockPoint.mDevelopersHomePoint;
+        b = MockPoint.mDevelopersHomePoint;
+        distance = 0;
+        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * Point.EARTH_RADIUS);
+        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+
+        a = MockPoint.mDevelopersHomePoint;
+        b = MockPoint.mNorthPolePoint;
         distance = 4982000;
         assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
 
-        a = new Point("Point 0", 0, 0, 0);
-        b = new Point("Pôle Sud", -90, 0, 0);
-        distance = 2 * Math.PI * Point.EARTH_RADIUS / 4;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
-
-        a = new Point("Point 0", 0, 0, 0);
-        b = new Point("Point 0", 360, 360, 0);
-        distance = 0;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * Point.EARTH_RADIUS);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
-
-        a = new Point("Point 0", 0, 0, 0);
-        b = new Point("Antipodes", 0, 180, 0);
+        a = MockPoint.mDevelopersHomePoint;
+        b = MockPoint.mDevelopersHomeAntipodesPoint;
         distance = 2 * Math.PI * Point.EARTH_RADIUS / 2;
         assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
 
-        a = new Point("Point 0", 0, 0, 0);
-        b = new Point("Antipodes", 0, -180, 0);
-        distance = 2 * Math.PI * Point.EARTH_RADIUS / 2;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
-
-        a = new Point("Developer's home :-)", 45.1916626, 5.7385538, 220);
-        b = new Point("Point 0", 0, 0, 0);
+        a = MockPoint.mDevelopersHomePoint;
+        b = MockPoint.mZeroPoint;
         distance = 5057000;
         assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
 
-        a = new Point("Developer's home :-)", 45.1916626, 5.7385538, 245);
-        b = new Point("Pied de l'Developer's home", 45.1916626, 5.7385538, 220);
-        distance = 0;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
-
-        a = new Point("Developer's home :-)", 45.1916626, 5.7385538, 245);
-        b = new Point("Sous l'immeuble du développeur", 45.1916626, 5.7385538, -100);
-        distance = 0;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
-
-        a = new Point("Developer's home :-)", 45.1916626, 5.7385538, 245);
-        b = new Point("Mont Rachais", 45.2417, 5.7436, 1046);
+        a = MockPoint.mDevelopersHomePoint;
+        b = MockPoint.mRachaisPoint;
         distance = 5578;
         assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
 
-        a = new Point("Developer's home :-)", 45.1916626, 5.7385538, 245);
-        b = new Point("Mont Blanc", 45.8326, 6.8652, 4810);
+        a = MockPoint.mDevelopersHomePoint;
+        b = MockPoint.mMontBlancPoint;
         distance = 113100;
         assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+    }
 
-        a = new Point("Developer's home :-)", 45.1916626, 5.7385538, 245);
-        b = new Point("Developer's home", 45.1916626, 5.7385538, 245);
-        distance = 0;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * Point.EARTH_RADIUS);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
-
-        a = new Point("Developer's home :-)", 45.1916626, 5.7385538, 245);
-        b = new Point("Antipodes", -48.028459, 179.421415, 245);
-        distance = 2 * Math.PI * Point.EARTH_RADIUS / 2;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+    @Test
+    public void test_azimuthTo() {
+        // TODO
     }
 }

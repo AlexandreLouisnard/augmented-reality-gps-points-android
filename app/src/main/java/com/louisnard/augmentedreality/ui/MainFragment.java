@@ -23,7 +23,6 @@ import android.widget.TextView;
 import com.louisnard.augmentedreality.DevUtils;
 import com.louisnard.augmentedreality.R;
 import com.louisnard.augmentedreality.model.Compass;
-import com.louisnard.augmentedreality.model.objects.mock.Mock;
 import com.louisnard.augmentedreality.model.database.DbContract;
 import com.louisnard.augmentedreality.model.database.DbHelper;
 import com.louisnard.augmentedreality.model.objects.Point;
@@ -116,7 +115,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         // TODO: FOR TEST USE ONLY: populate database
         final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
         dbHelper.clearTable(DbContract.PointsColumns.TABLE_NAME);
-        dbHelper.addPoints(Mock.MockPoint.getPoints());
+        //dbHelper.addPoints(MockPoint.getPoints());
         final List<Point> allPoints = dbHelper.getAllPoints();
         for (Point p : allPoints) {
             Log.d(TAG, "All points : " + p.getName());
