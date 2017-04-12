@@ -211,14 +211,19 @@ public class Point {
     }
 
     /**
-     * Calculates the azimuth (in degrees) between a meridian and the smooth curve connecting this {@link Point} and a given {@link Point} parameter.
-     * The azimuth is the angle at which a smooth curve crosses a meridian, taken clockwise from north. The North Pole has an azimuth of 0º from every other point on the globe.
+     * Returns the approximate azimuth in degrees East of true North when traveling along the shortest path from this {@link Point} to the given {@link Point} parameter.
+     * The shortest path is defined using the WGS84 ellipsoid. Locations that are (nearly) antipodal may produce meaningless results.
      * @param point the {@link Point} to calculate the azimuth with.
      * @return the azimuth (in degrees), taken clockwise from north, from 0° to 360°.
      */
     public float azimuthTo(Point point) {
-        float azimuth = 0;
-
-        return azimuth;
+        float azimuth = getLocation().bearingTo(point.getLocation());
+        if (azimuth >= 0 && azimuth < 360) {
+            return azimuth;
+        } else if (azimuth < 0 && azimuth >= -180) {
+            return 360 + azimuth;
+        } else {
+            return 0;
+        }
     }
 }

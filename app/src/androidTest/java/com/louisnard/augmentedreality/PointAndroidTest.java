@@ -56,7 +56,7 @@ public class PointAndroidTest {
 
     // Calculation methods testing
     /**
-     * Tests {@link Point#distanceTo(Point)} against values from the website http://www.movable-type.co.uk/scripts/latlong.html
+     * Tests {@link Point#distanceTo(Point)} calculation against values from the website http://www.movable-type.co.uk/scripts/latlong.html
      */
     @Test
     public void test_distanceTo() {
@@ -126,8 +126,26 @@ public class PointAndroidTest {
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
     }
 
+    /**
+     * Tests {@link Point#azimuthTo(Point)} calculation.
+     */
     @Test
     public void test_azimuthTo() {
-        // TODO
+        assertEquals(0, MockPoint.mZeroPoint.azimuthTo(MockPoint.mNorthPolePoint) % 360, ERROR_TOLERANCE * 360);
+        assertEquals(0, MockPoint.mDevelopersHomePoint.azimuthTo(MockPoint.mNorthPolePoint) % 360, ERROR_TOLERANCE * 360);
+        assertEquals(0, MockPoint.mDevelopersHomeAntipodesPoint.azimuthTo(MockPoint.mNorthPolePoint) % 360, ERROR_TOLERANCE * 360);
+        assertEquals(0, MockPoint.mRachaisPoint.azimuthTo(MockPoint.mNorthPolePoint) % 360, ERROR_TOLERANCE * 360);
+        assertEquals(0, MockPoint.mPopocateptlPoint.azimuthTo(MockPoint.mNorthPolePoint) % 360, ERROR_TOLERANCE * 360);
+        assertEquals(180, MockPoint.mZeroPoint.azimuthTo(MockPoint.mSouthPolePoint), ERROR_TOLERANCE * 360);
+        assertEquals(180, MockPoint.mDevelopersHomePoint.azimuthTo(MockPoint.mSouthPolePoint), ERROR_TOLERANCE * 360);
+        assertEquals(180, MockPoint.mDevelopersHomeAntipodesPoint.azimuthTo(MockPoint.mSouthPolePoint), ERROR_TOLERANCE * 360);
+        assertEquals(180, MockPoint.mRachaisPoint.azimuthTo(MockPoint.mSouthPolePoint), ERROR_TOLERANCE * 360);
+        assertEquals(180, MockPoint.mPopocateptlPoint.azimuthTo(MockPoint.mSouthPolePoint), ERROR_TOLERANCE * 360);
+        assertEquals(90, MockPoint.mZeroPoint.azimuthTo(new Point("East", 0, 10, 0)), ERROR_TOLERANCE * 360);
+        assertEquals(90, MockPoint.mZeroPoint.azimuthTo(new Point("East", 0, 10, 200)), ERROR_TOLERANCE * 360);
+        assertEquals(270, MockPoint.mZeroPoint.azimuthTo(new Point("West", 0, -10, 0)), ERROR_TOLERANCE * 360);
+        assertEquals(270, MockPoint.mZeroPoint.azimuthTo(new Point("West", 0, -10, -200)), ERROR_TOLERANCE * 360);
+        assertEquals(0, MockPoint.mZeroPoint.azimuthTo(new Point("North", 50, 0, 0)) % 360, ERROR_TOLERANCE * 360);
+        assertEquals(180, MockPoint.mZeroPoint.azimuthTo(new Point("South", -60, 0, 6507)), ERROR_TOLERANCE * 360);
     }
 }
