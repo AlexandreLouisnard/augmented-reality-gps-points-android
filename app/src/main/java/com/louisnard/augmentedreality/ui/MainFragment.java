@@ -124,11 +124,13 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
             Log.d(TAG, "All points : " + p.getName());
         }
 
-        final Point maisonPoint = new Point("Appartement du développeur :-)", 45.1916626f, 5.7385538f, 250);
-        final List<Point> somePoints = dbHelper.getPointsAround(maisonPoint, 5000);
-        for (Point p : somePoints) {
-            Log.d(TAG, "Points within 5km of " + maisonPoint.getName() + " : " + p.getName());
-        }
+        Location l = new Location("");
+        l.setLatitude(1);
+        l.setLongitude(2);
+        l.setAltitude(3);
+
+        final Point p = new Point("123", l);
+        Log.d(TAG, "p: " + p.getName() + "," + p.getLatitude() + "," + p.getLongitude() + "," + p.getAltitude());
     }
 
     @Override

@@ -112,10 +112,10 @@ public class DbHelper extends SQLiteOpenHelper {
      */
     public List<Point> getPointsAround(Point point, long distance) {
         // Delimitate the square within which to find points
-        final String latMin = String.valueOf((point.getLatitude() - Point.metersToDegrees(distance)) % 360);
-        final String latMax = String.valueOf((point.getLatitude() + Point.metersToDegrees(distance)) % 360);
-        final String lonMin = String.valueOf((point.getLongitude() - Point.metersToDegrees(distance)) % 360);
-        final String lonMax = String.valueOf((point.getLongitude() + Point.metersToDegrees(distance)) % 360);
+        final String latMin = String.valueOf((point.getLatitude() - Point.metersToDegrees(distance)) % 90);
+        final String latMax = String.valueOf((point.getLatitude() + Point.metersToDegrees(distance)) % 90);
+        final String lonMin = String.valueOf((point.getLongitude() - Point.metersToDegrees(distance)) % 180);
+        final String lonMax = String.valueOf((point.getLongitude() + Point.metersToDegrees(distance)) % 180);
         // Read database
         final SQLiteDatabase db = getWritableDatabase();
         final Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, null,
@@ -174,7 +174,7 @@ public class DbHelper extends SQLiteOpenHelper {
         values.put(DbContract.PointsColumns.COLUMN_NAME, point.getName());
         values.put(DbContract.PointsColumns.COLUMN_LATITUDE, point.getLatitude());
         values.put(DbContract.PointsColumns.COLUMN_LONGITUDE, point.getLongitude());
-        values.put(DbContract.PointsColumns.COLUMN_ELEVATION, point.getElevation());
+        values.put(DbContract.PointsColumns.COLUMN_ELEVATION, point.getAltitude());
         final long result = db.insert(DbContract.PointsColumns.TABLE_NAME, null, values);
         if (result == -1) {
             Log.d(TAG, "Error inserting the point: \"" + point.getName() + "\" into the database.");
