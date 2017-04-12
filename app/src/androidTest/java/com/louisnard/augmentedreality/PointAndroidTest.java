@@ -56,7 +56,7 @@ public class PointAndroidTest {
      * Tests {@link Point#distanceTo(Point)} against values from the website http://www.movable-type.co.uk/scripts/latlong.html
      */
     @Test
-    public void test_calculateDistanceWith() {
+    public void test_distanceTo() {
         Point a;
         Point b;
         double distance;
