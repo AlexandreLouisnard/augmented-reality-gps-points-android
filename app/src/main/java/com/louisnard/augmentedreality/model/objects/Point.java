@@ -13,6 +13,9 @@ import com.louisnard.augmentedreality.model.database.DbContract;
 
 public class Point {
 
+    // Point id
+    private long mId;
+
     // Name
     private String mName;
 
@@ -29,8 +32,8 @@ public class Point {
      * @param degrees the latitude or longitude difference (in degrees).
      * @return the distance (in meters).
      */
-    public static double degreesToMeters(double degrees) {
-        return Math.abs(degrees * 2 * Math.PI * EARTH_RADIUS / 360);
+    public static int degreesToMeters(double degrees) {
+        return (int) Math.abs(degrees * 2 * Math.PI * EARTH_RADIUS / 360);
     }
 
     /**
@@ -38,7 +41,7 @@ public class Point {
      * @param distance the distance (in meters).
      * @return the latitude or longitude difference (in degrees).
      */
-    public static double metersToDegrees(double distance) {
+    public static double metersToDegrees(int distance) {
         return distance * 360 / (2 * Math.PI * EARTH_RADIUS);
     }
 
@@ -98,7 +101,7 @@ public class Point {
      * @param altitude the altitude in meters.
      * @param name the name.
      */
-    public Point(String name, double latitude, double longitude, double altitude) {
+    public Point(String name, double latitude, double longitude, int altitude) {
         mName = name;
         mLocation = new Location("");
         mLocation.setLatitude(getValidLatitude(latitude));
@@ -122,6 +125,7 @@ public class Point {
      */
     public Point(Cursor cursor) {
         if (cursor != null) {
+            mId = cursor.getLong((cursor.getColumnIndex(DbContract.PointsColumns._ID)));
             mName = cursor.getString(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_NAME));
             mLocation = new Location("");
             mLocation.setLatitude(cursor.getDouble(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_LATITUDE)));
@@ -131,6 +135,14 @@ public class Point {
     }
 
     // Getters
+    /**
+     * Gets this {@link Point} id.
+     * @return the id.
+     */
+    public long getId() {
+        return mId;
+    }
+
     /**
      * Gets this {@link Point} name.
      * @return the name.
@@ -167,13 +179,25 @@ public class Point {
      * Gets this {@link Point} elevation above the sea level in meters.
      * @return the elevation in meters.
      */
-    public double getAltitude() {
-        return mLocation.getAltitude();
+    public int getAltitude() {
+        return (int) mLocation.getAltitude();
     }
     
     // Setters
+    /**
+     * Sets this {@link Point} name.
+     * @param name the name.
+     */
     public void setName(String name) {
         mName = name;
+    }
+
+    /**
+     * Sets this {@link Point} {@link Location}.
+     * @param location the {@link Location}.
+     */
+    public void setLocation(Location location) {
+        mLocation = location;
     }
 
     /**
@@ -196,7 +220,7 @@ public class Point {
      * Sets this {@link Point} altitude above the sea level in meters.
      * @param altitude the altitude in meters.
      */
-    public void setElevation(double altitude) {
+    public void setElevation(int altitude) {
         mLocation.setAltitude(altitude);
     }
 
@@ -204,16 +228,27 @@ public class Point {
     /**
      * Returns the approximate distance in meters between this {@link Point} and the given {@link Point}.
      * Distance is defined using the WGS84 ellipsoid.
+     * @param point the destination {@link Point}.
      * @return the distance (in meters).
      */
-    public float distanceTo(Point point) {
-        return mLocation.distanceTo(point.getLocation());
+    public int distanceTo(Point point) {
+        return (int) mLocation.distanceTo(point.getLocation());
+    }
+
+    /**
+     * Returns the approximate distance in meters between this {@link Point} and the given {@link Location}.
+     * Distance is defined using the WGS84 ellipsoid.
+     * @param location the destination {@link Location}.
+     * @return the distance (in meters).
+     */
+    public int distanceTo(Location location) {
+        return (int) mLocation.distanceTo(location);
     }
 
     /**
      * Returns the approximate azimuth in degrees East of true North when traveling along the shortest path from this {@link Point} to the given {@link Point}.
      * The shortest path is defined using the WGS84 ellipsoid. Locations that are (nearly) antipodal may produce meaningless results.
-     * @param point the {@link Point} to calculate the azimuth with.
+     * @param point the destination {@link Point}.
      * @return the azimuth (in degrees), taken clockwise from north, from 0° to 360°.
      */
     public float azimuthTo(Point point) {

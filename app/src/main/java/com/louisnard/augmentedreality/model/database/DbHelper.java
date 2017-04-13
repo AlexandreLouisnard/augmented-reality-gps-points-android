@@ -5,8 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.location.Location;
 import android.util.Log;
 
+import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.model.objects.Point;
 
 import java.util.ArrayList;
@@ -106,16 +108,16 @@ public class DbHelper extends SQLiteOpenHelper {
     /**
      * Returns all points from the {@link SQLiteDatabase} around the given {@link Point}.
      * Actually, the points are located in a square of size 2x{@param distance} and centered on the given {@param point}.
-     * @param point the {@link Point} around which the points have to be located.
+     * @param location the {@link Location} around which the points have to be located.
      * @param distance the half-size of the square around the {@link Point} where the points have to be located.
      * @return the {@link List<Point>} of all points located around the given {@link Point}.
      */
-    public List<Point> getPointsAround(Point point, long distance) {
+    public List<Point> getPointsAround(Location location, int distance) {
         // Delimitate the square within which to find points
-        final String latMin = String.valueOf((point.getLatitude() - Point.metersToDegrees(distance)) % 90);
-        final String latMax = String.valueOf((point.getLatitude() + Point.metersToDegrees(distance)) % 90);
-        final String lonMin = String.valueOf((point.getLongitude() - Point.metersToDegrees(distance)) % 180);
-        final String lonMax = String.valueOf((point.getLongitude() + Point.metersToDegrees(distance)) % 180);
+        final String latMin = String.valueOf((location.getLatitude() - Point.metersToDegrees(distance)) % 90);
+        final String latMax = String.valueOf((location.getLatitude() + Point.metersToDegrees(distance)) % 90);
+        final String lonMin = String.valueOf((location.getLongitude() - Point.metersToDegrees(distance)) % 180);
+        final String lonMax = String.valueOf((location.getLongitude() + Point.metersToDegrees(distance)) % 180);
         // Read database
         final SQLiteDatabase db = getWritableDatabase();
         final Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, null,
@@ -195,7 +197,7 @@ public class DbHelper extends SQLiteOpenHelper {
         values.put(DbContract.PointsColumns.COLUMN_ELEVATION, point.getAltitude());
         final long result = db.insert(DbContract.PointsColumns.TABLE_NAME, null, values);
         if (result == -1) {
-            Log.d(TAG, "Error inserting the point: \"" + point.getName() + "\" into the database.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Error inserting the point: \"" + point.getName() + "\" into the database.");
         }
         return result;
     }

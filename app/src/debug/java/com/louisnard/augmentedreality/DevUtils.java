@@ -48,7 +48,7 @@ public class DevUtils {
                     dst.transferFrom(src, 0, src.size());
                     src.close();
                     dst.close();
-                    Log.d(TAG, "Database copied to: " + backupDb.toString());
+                    if (BuildConfig.DEBUG) Log.d(TAG, "Database copied to: " + backupDb.toString());
                     return true;
                 }
             } catch (Exception e) {

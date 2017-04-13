@@ -11,6 +11,8 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.WindowManager;
 
+import com.louisnard.augmentedreality.BuildConfig;
+
 import static android.content.Context.SENSOR_SERVICE;
 
 
@@ -24,6 +26,10 @@ public class Compass implements SensorEventListener {
 
     // Tag
     private static final String TAG = Compass.class.getSimpleName();
+
+    // Constants
+    private static final float GEOMAGNETIC_SMOOTHING_FACTOR = 0.4f;
+    private static final float GRAVITY_SMOOTHING_FACTOR = 0.1f;
 
     // Context
     private Context mContext;
@@ -40,6 +46,11 @@ public class Compass implements SensorEventListener {
 
     // Listener
     private CompassListener mCompassListener;
+    // The minimum difference in degrees with the last azimuth measure for the CompassListener to be notified
+    private float mSensibility;
+    // The last azimuth value sent to the CompassListener
+    private float mLastAzimuthDegrees;
+
 
     /**
      * Interface definition for {@link Compass} callbacks.
@@ -72,7 +83,7 @@ public class Compass implements SensorEventListener {
         if (compass.hasRequiredSensors()) {
             return compass;
         } else {
-            Log.d(TAG, "The device does not have the required sensors for Compass.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "The device does not have the required sensors for Compass.");
             return null;
         }
     }
@@ -80,10 +91,10 @@ public class Compass implements SensorEventListener {
     // Check that the device has the required sensors
     private boolean hasRequiredSensors() {
         if (mMagnetometer == null) {
-            Log.d(TAG, "No Magnetic sensor.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "No Magnetic sensor.");
             return false;
         } else if (mAccelerometer == null) {
-            Log.d(TAG, "No Accelerometer sensor.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "No Accelerometer sensor.");
             return false;
         } else {
             return true;
@@ -93,10 +104,20 @@ public class Compass implements SensorEventListener {
     /**
      * Starts the {@link Compass}.
      * Must be called in {@link Activity#onResume()}.
+     * @param sensibility the minimum difference in degrees with the last azimuth measure for the {@link CompassListener} to be notified.
      */
-    public void start() {
+    public void start(float sensibility) {
+        mSensibility = sensibility;
         mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
         mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    /**
+     * Starts the {@link Compass}.
+     * Must be called in {@link Activity#onResume()}.
+     */
+    public void start() {
+        start(0);
     }
 
     /**
@@ -104,6 +125,7 @@ public class Compass implements SensorEventListener {
      * Must be called in {@link Activity#onPause()}.
      */
     public void stop() {
+        mSensibility = 0;
         mSensorManager.unregisterListener(this);
     }
 
@@ -111,10 +133,10 @@ public class Compass implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         synchronized (this) {
             if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-                mGeomagnetic = exponentialSmoothing(event.values, mGeomagnetic, 0.4f);
+                mGeomagnetic = exponentialSmoothing(event.values, mGeomagnetic, GEOMAGNETIC_SMOOTHING_FACTOR);
             }
             if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-                mGravity = exponentialSmoothing(event.values, mGravity, 0.1f);
+                mGravity = exponentialSmoothing(event.values, mGravity, GRAVITY_SMOOTHING_FACTOR);
             }
             float R[] = new float[9];
             float I[] = new float[9];
@@ -134,8 +156,11 @@ public class Compass implements SensorEventListener {
                 }
                 // Force azimuth value between 0° and 360°.
                 mAzimuthDegrees = (mAzimuthDegrees + 360) % 360;
-                // Log.d(TAG, "mAzimuthDegrees=" + String.format("%.0f", mAzimuthDegrees));
-                mCompassListener.onAzimuthChanged(mAzimuthDegrees);
+                // Notify the compass listener
+                if (Math.abs(mAzimuthDegrees - mLastAzimuthDegrees) >= mSensibility || mLastAzimuthDegrees == 0) {
+                    mLastAzimuthDegrees = mAzimuthDegrees;
+                    mCompassListener.onAzimuthChanged(mAzimuthDegrees);
+                }
             }
         }
     }

@@ -2,8 +2,13 @@ package com.louisnard.augmentedreality.ui;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.hardware.Camera;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -32,6 +37,9 @@ import com.louisnard.augmentedreality.ui.util.AlertDialogFragment;
 import com.louisnard.augmentedreality.ui.views.CompassView;
 
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Main fragment showing {@link Compass} data in a {@link CompassView}.
@@ -44,16 +52,38 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     // Tag
     private static final String TAG = MainFragment.class.getSimpleName();
 
-    // Views
-    private CompassView mCompassView;
-    private TextView mLocationTextView;
+    // Constants
+    // The minimum distance the user must have moved from its previous location to recalculate azimuths and distances, in meters
+    private static final int MIN_DISTANCE_DIFFERENCE_BETWEEN_RECALCULATIONS = 10;
+    // The minimum distance the user must have moved from its previous location to reload the points from the database, in meters
+    private static final int MIN_DISTANCE_DIFFERENCE_BETWEEN_DATABASE_RELOADS = 500;
+    // The maximum distance to search and display points around the user's location, in meters
+    private static final int MAX_RADIUS_DISTANCE_TO_SEARCH_POINTS_AROUND = 10000;
+    // The minimum time interval between GPS location updates, in milliseconds
+    private static final long MIN_TIME_INTERVAL_BETWEEN_LOCATION_UPDATES = 5000;
+    // The minimum difference with the last azimuth measured by the compass for the CompassListener to be notified, in degrees
+    private static final float MIN_AZIMUTH_DIFFERENCE_BETWEEN_COMPASS_UPDATES = 1;
 
     // Location
     private LocationManager mLocationManager;
-    private Location mLocation;
 
     // Compass
     private Compass mCompass;
+    private float mAzimuth;
+
+    // Camera
+    private float mHorizontalCameraAngle;
+    private float mVerticalCameraAngle;
+
+    // Points
+    private Point mLastDbReadUserLocationPoint;
+    private Point mUserLocationPoint;
+    private List<Point> mPoints;
+    private SortedMap<Float, Point> mPointsSortedMap;
+
+    // Views
+    private CompassView mCompassView;
+    private TextView mTextView;
 
     // Request codes
     private final int REQUEST_PERMISSIONS = 1;
@@ -64,26 +94,38 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         super.onCreate(savedInstanceState);
 
         // Check permissions
-        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_PERMISSIONS);
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA}, REQUEST_PERMISSIONS);
             }
-            Log.d(TAG, "Missing permissions.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Missing permissions.");
             return;
         }
 
         // Location
         mLocationManager = (LocationManager) getActivity().getSystemService(Activity.LOCATION_SERVICE);
-        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5, this);
+        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_INTERVAL_BETWEEN_LOCATION_UPDATES, 5, this);
 
         // Check that GPS is enabled
         if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            Log.d(TAG, "GPS is disabled.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "GPS is disabled.");
             showEnableGpsAlertDialog();
         }
 
         // Compass
-        mCompass = Compass.newInstance(getActivity(), this);
+        mCompass = Compass.newInstance(getContext(), this);
+
+        // Camera
+        CameraManager cameraManager = (CameraManager) getContext().getSystemService(Context.CAMERA_SERVICE);
+        String cameraId = getBackCameraId(cameraManager);
+
+        // Use the deprecated Camera class to get the camera angles of view
+        Camera camera = Camera.open(Integer.valueOf(cameraId));
+        Camera.Parameters cameraParameters = camera.getParameters();
+        mHorizontalCameraAngle = cameraParameters.getHorizontalViewAngle();
+        mVerticalCameraAngle = cameraParameters.getVerticalViewAngle();
+        if (BuildConfig.DEBUG) Log.d(TAG, "Back camera horizontal angle = " + mHorizontalCameraAngle + " and vertical angle = " + mVerticalCameraAngle);
     }
 
     @Nullable
@@ -97,7 +139,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         super.onViewCreated(view, savedInstanceState);
 
         // Views
-        mLocationTextView = (TextView) view.findViewById(R.id.text_view_location);
+        mTextView = (TextView) view.findViewById(android.R.id.text1);
         mCompassView = (CompassView) view.findViewById(R.id.compass_view);
     }
 
@@ -111,17 +153,12 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         }
 
         // Start compass
-        if (mCompass != null) mCompass.start();
+        if (mCompass != null) mCompass.start(MIN_AZIMUTH_DIFFERENCE_BETWEEN_COMPASS_UPDATES);
 
         // TODO: FOR TEST USE ONLY: populate database
         final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
         dbHelper.clearTable(DbContract.PointsColumns.TABLE_NAME);
         dbHelper.addPoints(MockPoint.getPoints());
-
-        final List<Point> points = dbHelper.findPointsByName("MONT");
-        for (Point p : points) {
-            Log.d(TAG, "Points : " + p.getName());
-        }
     }
 
     @Override
@@ -135,33 +172,56 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     // CompassListener interface
     @Override
     public void onAzimuthChanged(float azimuth) {
+        //mAzimuth = azimuth;
         mCompassView.updateAzimuth(azimuth);
+
+        // TODO: recalculate
+        if (mPointsSortedMap != null) {
+            SortedMap<Float, Point> visiblePoints = mPointsSortedMap.subMap(azimuth - mHorizontalCameraAngle / 2, azimuth + mHorizontalCameraAngle / 2);
+            String visiblePointsString = new String();
+            for (Map.Entry<Float, Point> entry : visiblePoints.entrySet()) {
+                visiblePointsString += entry.getValue().getName() + "\n";
+            }
+            mTextView.setText("Visible points :\n" + visiblePointsString);
+        }
     }
 
     // LocationListener interface
     @Override
     public void onLocationChanged(Location location) {
-        mLocation = location;
-        Log.d(TAG, "LocationListener.onLocationChanged(): " + mLocation.toString());
-        mLocationTextView.setText(mLocation.toString());
+        if (BuildConfig.DEBUG) Log.d(TAG, "LocationListener.onLocationChanged(): " + location.toString());
+
+        // Load points around the user from the database
+        if (mPoints == null || mLastDbReadUserLocationPoint == null || mLastDbReadUserLocationPoint.distanceTo(location) > MIN_DISTANCE_DIFFERENCE_BETWEEN_DATABASE_RELOADS) {
+            mLastDbReadUserLocationPoint = new Point("", location);
+            final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
+            mPoints = dbHelper.getPointsAround(location, MAX_RADIUS_DISTANCE_TO_SEARCH_POINTS_AROUND);
+            if (BuildConfig.DEBUG) Log.d(TAG, "Found " + mPoints.size() + " points around the new location.");
+        }
+
+        // Update user location and recalculate relative azimuths in the SortedMap
+        if (mUserLocationPoint == null || mUserLocationPoint.distanceTo(location) > MIN_DISTANCE_DIFFERENCE_BETWEEN_RECALCULATIONS) {
+            mUserLocationPoint = new Point("", location);
+            mPointsSortedMap = sortPointsByRelativeAzimuths(mUserLocationPoint, mPoints);
+        }
     }
 
     // LocationListener interface
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-        Log.d(TAG, "LocationListener.onStatusChanged()");
+        if (BuildConfig.DEBUG) Log.d(TAG, "LocationListener.onStatusChanged()");
     }
 
     // LocationListener interface
     @Override
     public void onProviderEnabled(String provider) {
-        Log.d(TAG, "LocationListener.onProviderEnabled()");
+        if (BuildConfig.DEBUG) Log.d(TAG, "LocationListener.onProviderEnabled()");
     }
 
     // LocationListener interface
     @Override
     public void onProviderDisabled(String provider) {
-        Log.d(TAG, "LocationListener.onProviderDisabled()");
+        if (BuildConfig.DEBUG) Log.d(TAG, "LocationListener.onProviderDisabled()");
         showEnableGpsAlertDialog();
     }
 
@@ -187,10 +247,45 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         }
     }
 
+    // Calculate the relative azimuth of points from the user's location point of view
+    /**
+     * Returns a {@link SortedMap<Float, Point>} mapping:
+     * - As key: each point azimuth, as seen from {@param originPoint}.
+     * - As value: each {@link Point} from {@param points}.
+     * The {@link SortedMap<Float, Point>} is sorted by key value (which means by point azimuth).
+     * @param originPoint the {@link Point} from which to calculate the relative azimuths of the other points. For instance, the user location.
+     * @param points the {@link List<Point>} to sort by relative azimuth.
+     * @return the {@link SortedMap<Float, Point>} of points sorted by azimuth as seen from {@param originPoint}, ans using azimuth values as keys.
+     */
+    private SortedMap<Float, Point> sortPointsByRelativeAzimuths(Point originPoint, List<Point> points) {
+        SortedMap<Float, Point> pointsSortedMap = new TreeMap<Float, Point>();
+        for (Point p : points) {
+            pointsSortedMap.put(originPoint.azimuthTo(p), p);
+        }
+        return pointsSortedMap;
+    }
+
     // Display an alert dialog asking the user to enable the GPS
     private void showEnableGpsAlertDialog() {
         AlertDialogFragment alertDialogFragment = AlertDialogFragment.newInstance(R.string.alert_dialog_title_gps, R.string.alert_dialog_message_enable_gps, android.R.string.ok, android.R.string.cancel);
         alertDialogFragment.setTargetFragment(this, REQUEST_ENABLE_GPS);
         alertDialogFragment.show(getFragmentManager(), AlertDialogFragment.TAG);
+    }
+
+    // Get the device back camera id
+    private String getBackCameraId(CameraManager cameraManager) {
+        try {
+            final String[] cameraIdsList = cameraManager.getCameraIdList();
+            for (String id : cameraIdsList){
+                final CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(id);
+                if(characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
+                    return id;
+                }
+            }
+        } catch (CameraAccessException e) {
+            if (BuildConfig.DEBUG) Log.d(TAG, "Your device does not have a camera.");
+            e.printStackTrace();
+        }
+        return null;
     }
 }

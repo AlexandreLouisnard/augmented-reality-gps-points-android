@@ -14,8 +14,7 @@
         android:layout_width="100dp"
         android:layout_height="100dp"/>
     <TextView
-        android:id="@+id/text_view_location"
+        android:id="@android:id/text1"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="GPS location"/>
+        android:layout_height="wrap_content"/>
 </LinearLayout>
