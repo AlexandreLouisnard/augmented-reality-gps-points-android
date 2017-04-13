@@ -131,7 +131,6 @@ public class Point {
     }
 
     // Getters
-
     /**
      * Gets this {@link Point} name.
      * @return the name.
@@ -150,7 +149,7 @@ public class Point {
 
     /**
      * Gets this {@link Point} latitude in degrees.
-     * @return the latitude in degrees.
+     * @return the latitude in degrees, comprised between -90° and 90°.
      */
     public double getLatitude() {
         return mLocation.getLatitude();
@@ -158,7 +157,7 @@ public class Point {
 
     /**
      * Gets this {@link Point} longitude in degrees.
-     * @return the longitude in degrees.
+     * @return the longitude in degrees, comprised between -180° and 180°.
      */
     public double getLongitude() {
         return mLocation.getLongitude();
@@ -203,7 +202,8 @@ public class Point {
 
     // Calculations
     /**
-     * Returns the approximate distance in meters between this {@link Point} and the given {@link Point}. Distance is defined using the WGS84 ellipsoid.
+     * Returns the approximate distance in meters between this {@link Point} and the given {@link Point}.
+     * Distance is defined using the WGS84 ellipsoid.
      * @return the distance (in meters).
      */
     public float distanceTo(Point point) {
@@ -211,7 +211,7 @@ public class Point {
     }
 
     /**
-     * Returns the approximate azimuth in degrees East of true North when traveling along the shortest path from this {@link Point} to the given {@link Point} parameter.
+     * Returns the approximate azimuth in degrees East of true North when traveling along the shortest path from this {@link Point} to the given {@link Point}.
      * The shortest path is defined using the WGS84 ellipsoid. Locations that are (nearly) antipodal may produce meaningless results.
      * @param point the {@link Point} to calculate the azimuth with.
      * @return the azimuth (in degrees), taken clockwise from north, from 0° to 360°.

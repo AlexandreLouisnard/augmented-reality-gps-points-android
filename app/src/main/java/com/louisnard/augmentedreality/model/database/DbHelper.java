@@ -78,7 +78,7 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Clears the specified table.
+     * Clears the given table.
      * @param tableName the table name.
      */
     public void clearTable(String tableName) {
@@ -88,7 +88,7 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Gets the {@link List<Point>} of all the points from the {@link SQLiteDatabase}.
+     * Returns all points from the {@link SQLiteDatabase}.
      * @return the {@link List<Point>}.
      */
     public List<Point> getAllPoints() {
@@ -104,11 +104,11 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Gets the {@link List<Point>} of all points from the {@link SQLiteDatabase} around the specified {@link Point}.
-     * Actually, the points are located in a square of size 2x{@param distance} and centered on the specified {@param point}.
+     * Returns all points from the {@link SQLiteDatabase} around the given {@link Point}.
+     * Actually, the points are located in a square of size 2x{@param distance} and centered on the given {@param point}.
      * @param point the {@link Point} around which the points have to be located.
      * @param distance the half-size of the square around the {@link Point} where the points have to be located.
-     * @return the {@link List<Point>} of all points located around the specified {@link Point}.
+     * @return the {@link List<Point>} of all points located around the given {@link Point}.
      */
     public List<Point> getPointsAround(Point point, long distance) {
         // Delimitate the square within which to find points
@@ -131,7 +131,25 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Adds the specified {@link Point} to the {@link SQLiteDatabase}.
+     * Returns the points from the {@link SQLiteDatabase} whose name contains the given name.
+     * @param name the name to search for.
+     * @return the {@link List<Point>}.
+     */
+    public List<Point> findPointsByName(String name) {
+        // Read database
+        final SQLiteDatabase db = getWritableDatabase();
+        final Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, null, DbContract.PointsColumns.COLUMN_NAME + " LIKE '%" + name + "%'", null, null, null, null);
+        final List<Point> points = new ArrayList<>();
+        while (cursor.moveToNext()) {
+            points.add(new Point(cursor));
+        }
+        cursor.close();
+        db.close();
+        return points;
+    }
+
+    /**
+     * Adds the given {@link Point} to the {@link SQLiteDatabase}.
      * @param point the {@link Point} to insert.
      * @return the row id of the newly inserted row, or -1 if an error occurred.
      */
@@ -144,7 +162,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     /**
      *
-     * Adds the specified {@link List<Point>} to the {@link SQLiteDatabase}.
+     * Adds the given {@link List<Point>} to the {@link SQLiteDatabase}.
      * @param points the {@link List<Point>} to insert.
      * @return the number of successfully inserted rows, or -1 if an error occurred on one or many rows.
      */
@@ -163,7 +181,7 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Inserts a {@link Point} in the specified {@link SQLiteDatabase}.
+     * Inserts a {@link Point} in the given {@link SQLiteDatabase}.
      * The {@link SQLiteDatabase} must be closed after calling this function.
      * @param point the {@link List<Point>} to insert.
      * @param db the {@link SQLiteDatabase} to insert the point into.

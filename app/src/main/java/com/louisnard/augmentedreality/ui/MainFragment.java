@@ -20,8 +20,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.DevUtils;
 import com.louisnard.augmentedreality.R;
+import com.louisnard.augmentedreality.mock.MockPoint;
 import com.louisnard.augmentedreality.model.Compass;
 import com.louisnard.augmentedreality.model.database.DbContract;
 import com.louisnard.augmentedreality.model.database.DbHelper;
@@ -82,9 +84,6 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
 
         // Compass
         mCompass = Compass.newInstance(getActivity(), this);
-        if (mCompass == null) {
-            Log.d(TAG, "The device does not have the required sensors to use a augmentedreality.");
-        }
     }
 
     @Nullable
@@ -106,8 +105,10 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     public void onResume() {
         super.onResume();
 
-        // For test use only : dump database
-        DevUtils.exportDatabaseToExternalStorage(getActivity(), DbHelper.getDbName());
+        // Dump database for debug use only
+        if (BuildConfig.DEBUG) {
+            DevUtils.exportDatabaseToExternalStorage(getActivity(), DbHelper.getDbName());
+        }
 
         // Start compass
         if (mCompass != null) mCompass.start();
@@ -115,19 +116,12 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         // TODO: FOR TEST USE ONLY: populate database
         final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
         dbHelper.clearTable(DbContract.PointsColumns.TABLE_NAME);
-        //dbHelper.addPoints(MockPoint.getPoints());
-        final List<Point> allPoints = dbHelper.getAllPoints();
-        for (Point p : allPoints) {
-            Log.d(TAG, "All points : " + p.getName());
+        dbHelper.addPoints(MockPoint.getPoints());
+
+        final List<Point> points = dbHelper.findPointsByName("MONT");
+        for (Point p : points) {
+            Log.d(TAG, "Points : " + p.getName());
         }
-
-        Location l = new Location("");
-        l.setLatitude(1);
-        l.setLongitude(2);
-        l.setAltitude(3);
-
-        final Point p = new Point("123", l);
-        Log.d(TAG, "p: " + p.getName() + "," + p.getLatitude() + "," + p.getLongitude() + "," + p.getAltitude());
     }
 
     @Override
