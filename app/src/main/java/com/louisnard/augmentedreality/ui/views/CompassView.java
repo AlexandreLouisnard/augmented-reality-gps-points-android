@@ -43,7 +43,7 @@ public class CompassView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        // Draw augmentedreality structure on a cached bitmap
+        // Draw compass structure on a cached bitmap
         if (mCachedBitmap == null) {
             // Prepare cached bitmap & canvas
             mCachedBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888); //Change to lower bitmap config if possible.
@@ -54,7 +54,7 @@ public class CompassView extends View {
             mY = getMeasuredHeight() / 2;
             mRadius = (float) (Math.max(mX, mY) * 0.6);
 
-            // Draw augmentedreality structure on the cached canvas
+            // Draw compass structure on the cached canvas
             cachedCanvas.drawCircle(mX, mY, mRadius, mPaint);
             cachedCanvas.drawRect(0, 0, getMeasuredWidth(), getMeasuredHeight(), mPaint);
         }
@@ -62,7 +62,7 @@ public class CompassView extends View {
         // Set cached bitmap on the canvas
         canvas.drawBitmap(mCachedBitmap, 0, 0, mPaint);
 
-        // Draw augmentedreality line
+        // Draw compass line
         canvas.drawLine(mX, mY,
                 (float) (mX + mRadius * Math.sin((double) (-mAzimuthDegrees) / 180 * Math.PI)),
                 (float) (mY - mRadius * Math.cos((double) (-mAzimuthDegrees) / 180 * Math.PI)),

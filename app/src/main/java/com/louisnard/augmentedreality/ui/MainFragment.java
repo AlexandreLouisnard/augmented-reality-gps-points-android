@@ -82,8 +82,8 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     private float mScreenWidth;
     private float mScreenHeight;
     // Screen to camera ratios: the number of pixels on the screen associated to a one degree variation on the camera
-    private float mHorizontalPixelsPerAngle;
-    private float mVerticalPixelsPerAngle;
+    private float mHorizontalPixelsPerDegree;
+    private float mVerticalPixelsPerDegree;
 
     // Points
     private Point mLastDbReadUserLocationPoint;
@@ -149,9 +149,9 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         if (BuildConfig.DEBUG) Log.d(TAG, "Screen size = " + mScreenWidth + "x" + mScreenHeight);
 
         // Calculate the number of pixels on the screen associated to a 1° angle variation on the camera
-        mHorizontalPixelsPerAngle = mScreenWidth / mHorizontalCameraAngle;
-        mVerticalPixelsPerAngle = mScreenHeight / mVerticalCameraAngle;
-        if (BuildConfig.DEBUG) Log.d(TAG, "Screen pixels associated to 1° camera angle variation: horizontal=" + mHorizontalPixelsPerAngle + "px/° & vertical=" + mVerticalPixelsPerAngle + "px/°");
+        mHorizontalPixelsPerDegree = mScreenWidth / mHorizontalCameraAngle;
+        mVerticalPixelsPerDegree = mScreenHeight / mVerticalCameraAngle;
+        if (BuildConfig.DEBUG) Log.d(TAG, "Screen pixels associated to 1° camera angle variation: horizontal=" + mHorizontalPixelsPerDegree + "px/° & vertical=" + mVerticalPixelsPerDegree + "px/°");
     }
 
     @Nullable

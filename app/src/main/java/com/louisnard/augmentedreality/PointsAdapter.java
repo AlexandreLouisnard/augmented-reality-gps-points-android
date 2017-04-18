@@ -62,6 +62,7 @@ public class PointsAdapter extends BaseAdapter {
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
+            //convertView.setTranslationX(mOriginPoint.azimuthTo(mPoints.get(position)));
             return convertView;
     }
 
