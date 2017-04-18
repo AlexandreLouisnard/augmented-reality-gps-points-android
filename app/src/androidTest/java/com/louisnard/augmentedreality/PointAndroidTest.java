@@ -143,6 +143,7 @@ public class PointAndroidTest {
         assertEquals(180, MockPoint.mPopocateptlPoint.azimuthTo(MockPoint.mSouthPolePoint), ERROR_TOLERANCE * 360);
         assertEquals(90, MockPoint.mZeroPoint.azimuthTo(new Point("East", 0, 10, 0)), ERROR_TOLERANCE * 360);
         assertEquals(90, MockPoint.mZeroPoint.azimuthTo(new Point("East", 0, 10, 200)), ERROR_TOLERANCE * 360);
+        assertEquals(90, MockPoint.mZeroPoint.azimuthTo(new Point("East", 0, 10, 200)), ERROR_TOLERANCE * 360);
         assertEquals(270, MockPoint.mZeroPoint.azimuthTo(new Point("West", 0, -10, 0)), ERROR_TOLERANCE * 360);
         assertEquals(270, MockPoint.mZeroPoint.azimuthTo(new Point("West", 0, -10, -200)), ERROR_TOLERANCE * 360);
         assertEquals(0, MockPoint.mZeroPoint.azimuthTo(new Point("North", 50, 0, 0)) % 360, ERROR_TOLERANCE * 360);

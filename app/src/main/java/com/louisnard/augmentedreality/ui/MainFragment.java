@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
@@ -20,13 +21,17 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.DevUtils;
+import com.louisnard.augmentedreality.PointsAdapter;
 import com.louisnard.augmentedreality.R;
 import com.louisnard.augmentedreality.mock.MockPoint;
 import com.louisnard.augmentedreality.model.Compass;
@@ -36,8 +41,8 @@ import com.louisnard.augmentedreality.model.objects.Point;
 import com.louisnard.augmentedreality.ui.util.AlertDialogFragment;
 import com.louisnard.augmentedreality.ui.views.CompassView;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -71,19 +76,27 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     private Compass mCompass;
     private float mAzimuth;
 
-    // Camera
+    // Camera & screen
     private float mHorizontalCameraAngle;
     private float mVerticalCameraAngle;
+    private float mScreenWidth;
+    private float mScreenHeight;
+    // Screen to camera ratios: the number of pixels on the screen associated to a one degree variation on the camera
+    private float mHorizontalPixelsPerAngle;
+    private float mVerticalPixelsPerAngle;
 
     // Points
     private Point mLastDbReadUserLocationPoint;
     private Point mUserLocationPoint;
     private List<Point> mPoints;
-    private SortedMap<Float, Point> mPointsSortedMap;
+    private List<TextView> mPointViews;
+    private SortedMap<Float, Point> mPointsSortedByAzimuth;
 
     // Views
+    private RelativeLayout mRelativeLayout;
     private CompassView mCompassView;
     private TextView mTextView;
+    private ListView mListView;
 
     // Request codes
     private final int REQUEST_PERMISSIONS = 1;
@@ -117,15 +130,28 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         mCompass = Compass.newInstance(getContext(), this);
 
         // Camera
-        CameraManager cameraManager = (CameraManager) getContext().getSystemService(Context.CAMERA_SERVICE);
-        String cameraId = getBackCameraId(cameraManager);
+        final CameraManager cameraManager = (CameraManager) getContext().getSystemService(Context.CAMERA_SERVICE);
+        final String cameraId = getBackCameraId(cameraManager);
 
         // Use the deprecated Camera class to get the camera angles of view
-        Camera camera = Camera.open(Integer.valueOf(cameraId));
-        Camera.Parameters cameraParameters = camera.getParameters();
+        final Camera camera = Camera.open(Integer.valueOf(cameraId));
+        final Camera.Parameters cameraParameters = camera.getParameters();
         mHorizontalCameraAngle = cameraParameters.getHorizontalViewAngle();
         mVerticalCameraAngle = cameraParameters.getVerticalViewAngle();
         if (BuildConfig.DEBUG) Log.d(TAG, "Back camera horizontal angle = " + mHorizontalCameraAngle + " and vertical angle = " + mVerticalCameraAngle);
+
+        // Screen size
+        final Display display = getActivity().getWindowManager().getDefaultDisplay();
+        final android.graphics.Point size = new android.graphics.Point();
+        display.getSize(size);
+        mScreenWidth = size.x;
+        mScreenHeight = size.y;
+        if (BuildConfig.DEBUG) Log.d(TAG, "Screen size = " + mScreenWidth + "x" + mScreenHeight);
+
+        // Calculate the number of pixels on the screen associated to a 1° angle variation on the camera
+        mHorizontalPixelsPerAngle = mScreenWidth / mHorizontalCameraAngle;
+        mVerticalPixelsPerAngle = mScreenHeight / mVerticalCameraAngle;
+        if (BuildConfig.DEBUG) Log.d(TAG, "Screen pixels associated to 1° camera angle variation: horizontal=" + mHorizontalPixelsPerAngle + "px/° & vertical=" + mVerticalPixelsPerAngle + "px/°");
     }
 
     @Nullable
@@ -139,8 +165,10 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         super.onViewCreated(view, savedInstanceState);
 
         // Views
+        mRelativeLayout = (RelativeLayout) view.findViewById(R.id.relative_layout);
         mTextView = (TextView) view.findViewById(android.R.id.text1);
         mCompassView = (CompassView) view.findViewById(R.id.compass_view);
+        mListView = (ListView) view.findViewById(R.id.list_view);
     }
 
     @Override
@@ -175,14 +203,9 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         //mAzimuth = azimuth;
         mCompassView.updateAzimuth(azimuth);
 
-        // TODO: recalculate
-        if (mPointsSortedMap != null) {
-            SortedMap<Float, Point> visiblePoints = mPointsSortedMap.subMap(azimuth - mHorizontalCameraAngle / 2, azimuth + mHorizontalCameraAngle / 2);
-            String visiblePointsString = new String();
-            for (Map.Entry<Float, Point> entry : visiblePoints.entrySet()) {
-                visiblePointsString += entry.getValue().getName() + "\n";
-            }
-            mTextView.setText("Visible points :\n" + visiblePointsString);
+        if (mPoints != null) {
+            // TODO: generate adapter, place views...
+            mListView.setAdapter(new PointsAdapter(getContext(), mPoints, mUserLocationPoint, azimuth - mHorizontalCameraAngle, azimuth + mHorizontalCameraAngle));
         }
     }
 
@@ -196,13 +219,15 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
             mLastDbReadUserLocationPoint = new Point("", location);
             final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
             mPoints = dbHelper.getPointsAround(location, MAX_RADIUS_DISTANCE_TO_SEARCH_POINTS_AROUND);
-            if (BuildConfig.DEBUG) Log.d(TAG, "Found " + mPoints.size() + " points around the new location.");
+            //mPointViews = generatePointViews(mPoints);
+            if (BuildConfig.DEBUG) Log.d(TAG, "Found " + mPoints.size() + " points in the database around the new user location.");
         }
 
-        // Update user location and recalculate relative azimuths in the SortedMap
+        // Update user location and recalculate relative azimuths of each point
         if (mUserLocationPoint == null || mUserLocationPoint.distanceTo(location) > MIN_DISTANCE_DIFFERENCE_BETWEEN_RECALCULATIONS) {
+            if (BuildConfig.DEBUG) Log.d(TAG, "Recalculating points azimuth from the new user location");
             mUserLocationPoint = new Point("", location);
-            mPointsSortedMap = sortPointsByRelativeAzimuths(mUserLocationPoint, mPoints);
+            //mPointsSortedByAzimuth = getPointsSortedMapByAzimuth(mUserLocationPoint, mPoints);
         }
     }
 
@@ -257,12 +282,56 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
      * @param points the {@link List<Point>} to sort by relative azimuth.
      * @return the {@link SortedMap<Float, Point>} of points sorted by azimuth as seen from {@param originPoint}, ans using azimuth values as keys.
      */
-    private SortedMap<Float, Point> sortPointsByRelativeAzimuths(Point originPoint, List<Point> points) {
+    private SortedMap<Float, Point> getPointsSortedMapByAzimuth(Point originPoint, List<Point> points) {
         SortedMap<Float, Point> pointsSortedMap = new TreeMap<Float, Point>();
         for (Point p : points) {
             pointsSortedMap.put(originPoint.azimuthTo(p), p);
         }
         return pointsSortedMap;
+    }
+
+    // Calculate the relative azimuth of points from the user's location point of view and generate views
+    /**
+     * Returns a {@link SortedMap<Float, TextView>} mapping:
+     * - As key: each point azimuth, as seen from {@param originPoint}.
+     * - As value: each {@link Point} from {@param points}.
+     * The {@link SortedMap<Float, TextView>} is sorted by key value (which means by point azimuth).
+     * @param originPoint the {@link Point} from which to calculate the relative azimuths of the other points. For instance, the user location.
+     * @param points the {@link List<Point>} to sort by relative azimuth.
+     * @return the {@link SortedMap<Float, TextView>} of point views sorted by azimuth as seen from {@param originPoint}, ans using azimuth values as keys.
+     */
+    private SortedMap<Float, TextView> generatePointViewsSortedMap(Point originPoint, List<Point> points) {
+        SortedMap<Float, TextView> pointViewsSortedMap = new TreeMap<Float, TextView>();
+        for (Point point : points) {
+            final TextView pointView = new TextView(getContext());
+            final RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+            pointView.setLayoutParams(params);
+            pointView.setBackgroundColor(Color.BLUE);
+            pointView.setText(point.getName());
+            pointViewsSortedMap.put(originPoint.azimuthTo(point), pointView);
+        }
+        return pointViewsSortedMap;
+    }
+
+
+    /**
+     * Returns a {@List<TextView>} with a point view for each point from {@param points}.
+     * @param points the {@link List<Point>} to generate views from.
+     * @return the {@List<TextView>} of generated views.
+     */
+    private List<TextView> generatePointViews(List<Point> points) {
+        List<TextView> pointViews = new ArrayList<TextView>();
+        for (Point point : points) {
+            final TextView pointView = new TextView(getContext());
+            final RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+            pointView.setLayoutParams(params);
+            pointView.setBackgroundColor(Color.BLUE);
+            pointView.setText(point.getName());
+            pointViews.add(pointView);
+        }
+        return pointViews;
     }
 
     // Display an alert dialog asking the user to enable the GPS

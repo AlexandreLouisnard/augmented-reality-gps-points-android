@@ -2,8 +2,11 @@ package com.louisnard.augmentedreality.model.objects;
 
 import android.database.Cursor;
 import android.location.Location;
+import android.util.SparseArray;
 
 import com.louisnard.augmentedreality.model.database.DbContract;
+
+import java.util.ArrayList;
 
 /**
  * Class that holds a point and its coordinates.
@@ -21,6 +24,9 @@ public class Point {
 
     // Coordinates in degrees
     private Location mLocation;
+
+    // Cached azimuths to other points
+    private SparseArray<Float> mCachedAzimuths = new SparseArray<>();
 
     // Constants
     // The Earth mean radius in meters
@@ -206,6 +212,7 @@ public class Point {
      */
     public void setLatitude(double latitude) {
         mLocation.setLatitude(getValidLatitude(latitude));
+        mCachedAzimuths.clear();
     }
 
     /**
@@ -214,6 +221,7 @@ public class Point {
      */
     public void setLongitude(double longitude) {
         mLocation.setLongitude(getValidLongitude(longitude));
+        mCachedAzimuths.clear();
     }
 
     /**
@@ -252,13 +260,17 @@ public class Point {
      * @return the azimuth (in degrees), taken clockwise from north, from 0° to 360°.
      */
     public float azimuthTo(Point point) {
-        float azimuth = getLocation().bearingTo(point.getLocation());
-        if (azimuth >= 0 && azimuth < 360) {
-            return azimuth;
-        } else if (azimuth < 0 && azimuth >= -180) {
-            return 360 + azimuth;
+        // Return cached azimuth to this point, if any
+        if(point.getId() != 0 && mCachedAzimuths.get((int) point.getId()) != null) {
+            return mCachedAzimuths.get((int) point.getId());
+        // Or calculate the azimuth to this point
         } else {
-            return 0;
+            float azimuth = getLocation().bearingTo(point.getLocation());
+            if (azimuth < 0 && azimuth >= -180) {
+                azimuth = 360 + azimuth;
+            }
+            mCachedAzimuths.setValueAt((int) point.getId(), azimuth);
+            return azimuth;
         }
     }
 }
