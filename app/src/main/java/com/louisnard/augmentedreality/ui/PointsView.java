@@ -17,7 +17,9 @@ import com.louisnard.augmentedreality.model.objects.Point;
 import java.util.SortedMap;
 
 /**
- * Created by louisnard on 19/04/2017.
+ * {@link View} class that places and displays points from a {@link SortedMap<Float, Point>} depending on their azimuth.
+ *
+ * @author Alexandre Louisnard
  */
 
 public class PointsView extends View {
@@ -35,8 +37,9 @@ public class PointsView extends View {
     private float mAzimuthTo;
 
     // Screen to camera angles ratios: the number of pixels on the screen associated to a one degree variation on the camera
-    private float mHorizontalCameraAngle;
-    private float mVerticalCameraAngle;
+    // Default values are those of a Nexus 4 camera
+    private float mHorizontalCameraAngle = 54.8f;
+    private float mVerticalCameraAngle = 42.5f;
     private float mHorizontalPixelsPerDegree;
     private float mVerticalPixelsPerDegree;
 
@@ -54,18 +57,34 @@ public class PointsView extends View {
         mTextPaint.setStyle(Paint.Style.STROKE);
     }
 
+    /**
+     * Sets the device camera angles of view.
+     * This angle of view is used to calculate the placement of the points.
+     * If not set, default values are those of a Nexus 4: horizontal angle = 54.8° and vertical angle = 42.5°.
+     * @param horizontalCameraAngle the horizontal angle of view in degrees.
+     * @param verticalCameraAngle the vertical angle of view in degrees.
+     */
     public void setCameraAngles(float horizontalCameraAngle, float verticalCameraAngle) {
         // Camera angles
         mHorizontalCameraAngle = horizontalCameraAngle;
         mVerticalCameraAngle = verticalCameraAngle;
     }
 
+    /**
+     * Sets the points that will be displayed in the {@link PointsView}.
+     * @param points the {@link SortedMap<Float, Point>} mapping the relative azimuth of the point as the key with the associated {@link Point} as the value. Must be sorted by ascending azimuths.
+     */
     public void setPoints(SortedMap<Float, Point> points) {
+        Log.d(TAG, "Updating points list with " + points.size() + " points.");
         mPoints = points;
         mVisiblePoints = mPoints.subMap(mAzimuthFrom, mAzimuthTo);
         invalidate();
     }
 
+    /**
+     * Sets the azimuth at the center of the {@link PointsView}.
+     * @param azimuth the azimuth in degrees.
+     */
     public void setAzimuth(float azimuth) {
         mAzimuthFrom = azimuth - mHorizontalCameraAngle / 2;
         mAzimuthTo = azimuth + mHorizontalCameraAngle / 2;
@@ -80,7 +99,7 @@ public class PointsView extends View {
         super.onDraw(canvas);
 
         // Scaling: calculate the number of pixels on the screen associated to a 1° angle variation on the camera
-        if((mHorizontalPixelsPerDegree == 0 || mVerticalCameraAngle == 0) && (mHorizontalCameraAngle != 0 && mVerticalCameraAngle != 0)) {
+        if(mHorizontalPixelsPerDegree == 0 || mVerticalPixelsPerDegree == 0) {
             mHorizontalPixelsPerDegree = getWidth() / mHorizontalCameraAngle;
             mVerticalPixelsPerDegree = getHeight() / mVerticalCameraAngle;
             if (BuildConfig.DEBUG)
@@ -104,7 +123,12 @@ public class PointsView extends View {
         }
     }
 
-    // Return the x value in pixels where the point should be horizontally placed on the screen depending on its azimuth
+    /**
+     * Returns the the x coordinate value in pixels where the point should be horizontally placed on the {@link PointsView} depending on its azimuth.
+     * Returns 0 if the point is located outside of the {@link PointsView}.
+     * @param azimuth the azimuth of the point in degrees.
+     * @return the x coordinate in pixels or 0 if it is located outside of the view.
+     */
     private int azimuthToXPixelCoordinate(float azimuth) {
         if (azimuth > mAzimuthFrom && azimuth < mAzimuthTo && mHorizontalPixelsPerDegree != 0) {
             return (int) (mHorizontalPixelsPerDegree * (azimuth - mAzimuthFrom - (mAzimuthTo - mAzimuthFrom) / 2) + getWidth() / 2);
