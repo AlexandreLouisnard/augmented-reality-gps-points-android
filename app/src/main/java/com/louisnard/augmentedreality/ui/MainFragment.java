@@ -76,14 +76,9 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     private Compass mCompass;
     private float mAzimuth;
 
-    // Camera & screen
+    // Camera
     private float mHorizontalCameraAngle;
     private float mVerticalCameraAngle;
-    private float mScreenWidthPixels;
-    private float mScreenHeightPixels;
-    // Screen to camera ratios: the number of pixels on the screen associated to a one degree variation on the camera
-    private float mHorizontalPixelsPerDegree;
-    private float mVerticalPixelsPerDegree;
 
     // Points
     private Point mLastDbReadUserLocationPoint;
@@ -96,6 +91,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     private RelativeLayout mRelativeLayout;
     private CompassView mCompassView;
     private PointsAdapter mPointsAdapter;
+    private PointsView mPointsView;
     //private TextView mTextView;
     //private ListView mListView;
 
@@ -142,7 +138,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         if (BuildConfig.DEBUG) Log.d(TAG, "Back camera horizontal angle = " + mHorizontalCameraAngle + " and vertical angle = " + mVerticalCameraAngle);
 
         // Screen size
-        final Display display = getActivity().getWindowManager().getDefaultDisplay();
+        /*final Display display = getActivity().getWindowManager().getDefaultDisplay();
         final DisplayMetrics outMetrics = new DisplayMetrics();
         display.getMetrics(outMetrics);
         final float density  = getResources().getDisplayMetrics().density;
@@ -153,7 +149,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         // Calculate the number of pixels on the screen associated to a 1° angle variation on the camera
         mHorizontalPixelsPerDegree = mScreenWidthPixels / mHorizontalCameraAngle;
         mVerticalPixelsPerDegree = mScreenHeightPixels / mVerticalCameraAngle;
-        if (BuildConfig.DEBUG) Log.d(TAG, "Screen pixels associated to 1° camera angle variation: horizontal=" + mHorizontalPixelsPerDegree + "px/° & vertical=" + mVerticalPixelsPerDegree + "px/°");
+        if (BuildConfig.DEBUG) Log.d(TAG, "Screen pixels associated to 1° camera angle variation: horizontal=" + mHorizontalPixelsPerDegree + "px/° & vertical=" + mVerticalPixelsPerDegree + "px/°");*/
     }
 
     @Nullable
@@ -171,6 +167,8 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         //mTextView = (TextView) view.findViewById(android.R.id.text1);
         mCompassView = (CompassView) view.findViewById(R.id.compass_view);
         //mListView = (ListView) view.findViewById(R.id.list_view);
+        mPointsView = (PointsView) view.findViewById(R.id.points_view);
+        mPointsView.setCameraAngles(mHorizontalCameraAngle, mVerticalCameraAngle);
     }
 
     @Override
@@ -206,6 +204,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         mCompassView.updateAzimuth(azimuth);
 
         // TODO: draw points
+        mPointsView.setAzimuth(azimuth);
     }
 
     // LocationListener interface
@@ -227,6 +226,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
             if (BuildConfig.DEBUG) Log.d(TAG, "Recalculating points azimuth from the new user location");
             mUserLocationPoint = new Point("", location);
             // TODO: calculate relative azimuths
+            mPointsView.setPoints(getPointsSortedMapByAzimuth(mUserLocationPoint, mPoints));
         }
     }
 

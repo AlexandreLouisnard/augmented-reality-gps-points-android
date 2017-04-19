@@ -17,6 +17,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"/>
     <com.louisnard.augmentedreality.ui.PointsView
+        android:id="@+id/points_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </RelativeLayout>
