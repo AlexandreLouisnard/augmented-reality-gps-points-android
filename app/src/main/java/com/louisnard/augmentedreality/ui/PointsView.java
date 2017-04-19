@@ -86,8 +86,9 @@ public class PointsView extends View {
      * @param azimuth the azimuth in degrees.
      */
     public void setAzimuth(float azimuth) {
-        mAzimuthFrom = azimuth - mHorizontalCameraAngle / 2;
-        mAzimuthTo = azimuth + mHorizontalCameraAngle / 2;
+        mAzimuthFrom = (azimuth - mHorizontalCameraAngle / 2) % 360;
+        mAzimuthTo = (azimuth + mHorizontalCameraAngle / 2) % 360;
+        // TODO: handle modulo 360
         if (mPoints != null) {
             mVisiblePoints = mPoints.subMap(mAzimuthFrom, mAzimuthTo);
             invalidate();
@@ -130,8 +131,11 @@ public class PointsView extends View {
      * @return the x coordinate in pixels or 0 if it is located outside of the view.
      */
     private int azimuthToXPixelCoordinate(float azimuth) {
-        if (azimuth > mAzimuthFrom && azimuth < mAzimuthTo && mHorizontalPixelsPerDegree != 0) {
+        if (mAzimuthFrom < mAzimuthTo && azimuth > mAzimuthFrom && azimuth < mAzimuthTo) {
             return (int) (mHorizontalPixelsPerDegree * (azimuth - mAzimuthFrom - (mAzimuthTo - mAzimuthFrom) / 2) + getWidth() / 2);
+        } else if (mAzimuthFrom > mAzimuthTo && azimuth < mAzimuthFrom && azimuth > mAzimuthTo) {
+            return (int) (mHorizontalPixelsPerDegree * (azimuth - mAzimuthFrom - (mAzimuthTo - mAzimuthFrom) / 2) + getWidth() / 2);
+            // TODO: handle modulo 360
         } else {
             return 0;
         }
