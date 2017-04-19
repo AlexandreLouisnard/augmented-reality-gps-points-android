@@ -12,26 +12,22 @@ import com.louisnard.augmentedreality.model.objects.Point;
 import java.util.List;
 
 /**
- * Created by louisnard on 14/04/2017.
+ * Adapter class that exposes {@link Point} data to a {@link View}.
+ *
+ * @author Alexandre Louisnard
  */
 
 public class PointsAdapter extends BaseAdapter {
 
     // Points
     private List<Point> mPoints;
-    private Point mOriginPoint;
-    private float mAzimuthMin;
-    private float mAzimuthMax;
 
     // Layout inflater
     private LayoutInflater mLayoutInflater;
 
-    public PointsAdapter(Context context, List<Point> points, Point originPoint, float azimuthMin, float azimuthMax) {
+    public PointsAdapter(Context context, List<Point> points) {
         mLayoutInflater = LayoutInflater.from(context);
         mPoints = points;
-        mOriginPoint = originPoint;
-        mAzimuthMin = azimuthMin;
-        mAzimuthMax = azimuthMax;
     }
 
     @Override
@@ -41,7 +37,7 @@ public class PointsAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int position) {
-        return mPoints;
+        return mPoints.get(position);
     }
 
     @Override
@@ -51,22 +47,20 @@ public class PointsAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        //if (mOriginPoint.azimuthTo(mPoints.get(position)) > mAzimuthMin && mOriginPoint.azimuthTo(mPoints.get(position)) < mAzimuthMax) {
-            ViewHolder holder;
-            if (convertView == null) {
-                convertView = mLayoutInflater.inflate(R.layout.item_point, parent, false);
-                holder = new ViewHolder();
-                holder.nameTextView = (TextView) convertView.findViewById(android.R.id.text1);
-                holder.nameTextView.setText(mPoints.get(position).getName());
-                convertView.setTag(holder);
-            } else {
-                holder = (ViewHolder) convertView.getTag();
-            }
-            //convertView.setTranslationX(mOriginPoint.azimuthTo(mPoints.get(position)));
-            return convertView;
+        ViewHolder holder;
+        if (convertView == null) {
+            convertView = mLayoutInflater.inflate(R.layout.item_point, parent, false);
+            holder = new ViewHolder();
+            holder.nameTextView = (TextView) convertView.findViewById(android.R.id.text1);
+            holder.nameTextView.setText(mPoints.get(position).getName());
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
+        }
+        return convertView;
     }
 
-    static class ViewHolder {
+    private static class ViewHolder {
         TextView nameTextView;
     }
 }

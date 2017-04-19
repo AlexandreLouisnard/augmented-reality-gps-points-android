@@ -16,20 +16,7 @@
         android:layout_height="100dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"/>
-    <ListView
-        android:id="@+id/list_view"
-        android:numColumns="360"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-    <ScrollView
+    <com.louisnard.augmentedreality.ui.PointsView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <com.louisnard.augmentedreality.ui.views.PortView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </HorizontalScrollView>
-    </ScrollView>
+        android:layout_height="match_parent" />
 </RelativeLayout>
