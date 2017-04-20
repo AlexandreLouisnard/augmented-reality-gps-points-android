@@ -10,6 +10,7 @@ import android.util.Log;
 
 import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.model.objects.Point;
+import com.louisnard.augmentedreality.model.services.PointService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,10 +115,10 @@ public class DbHelper extends SQLiteOpenHelper {
      */
     public List<Point> getPointsAround(Location location, int distance) {
         // Delimit the square within which to find points
-        final String latMin = String.valueOf((location.getLatitude() - Point.metersToDegrees(distance)) % 90);
-        final String latMax = String.valueOf((location.getLatitude() + Point.metersToDegrees(distance)) % 90);
-        final String lonMin = String.valueOf((location.getLongitude() - Point.metersToDegrees(distance)) % 180);
-        final String lonMax = String.valueOf((location.getLongitude() + Point.metersToDegrees(distance)) % 180);
+        final String latMin = String.valueOf((location.getLatitude() - PointService.metersToDegrees(distance)) % 90);
+        final String latMax = String.valueOf((location.getLatitude() + PointService.metersToDegrees(distance)) % 90);
+        final String lonMin = String.valueOf((location.getLongitude() - PointService.metersToDegrees(distance)) % 180);
+        final String lonMax = String.valueOf((location.getLongitude() + PointService.metersToDegrees(distance)) % 180);
         // Read database
         final SQLiteDatabase db = getWritableDatabase();
         final Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, null,

@@ -10,13 +10,13 @@
     android:id="@+id/relative_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <com.louisnard.augmentedreality.ui.views.CompassView
+    <com.louisnard.augmentedreality.views.CompassView
         android:id="@+id/compass_view"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"/>
-    <com.louisnard.augmentedreality.ui.PointsView
+    <com.louisnard.augmentedreality.views.PointsView
         android:id="@+id/points_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

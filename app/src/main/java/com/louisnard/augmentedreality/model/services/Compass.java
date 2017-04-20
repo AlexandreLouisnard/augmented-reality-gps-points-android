@@ -1,4 +1,4 @@
-package com.louisnard.augmentedreality.model;
+package com.louisnard.augmentedreality.model.services;
 
 import android.app.Activity;
 import android.content.Context;

@@ -1,4 +1,4 @@
-package com.louisnard.augmentedreality.ui;
+package com.louisnard.augmentedreality.fragments;
 
 import android.Manifest;
 import android.app.Activity;
@@ -29,12 +29,12 @@ import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.DevUtils;
 import com.louisnard.augmentedreality.R;
 import com.louisnard.augmentedreality.mock.MockPoint;
-import com.louisnard.augmentedreality.model.Compass;
+import com.louisnard.augmentedreality.model.services.Compass;
 import com.louisnard.augmentedreality.model.database.DbContract;
 import com.louisnard.augmentedreality.model.database.DbHelper;
 import com.louisnard.augmentedreality.model.objects.Point;
-import com.louisnard.augmentedreality.ui.util.AlertDialogFragment;
-import com.louisnard.augmentedreality.ui.views.CompassView;
+import com.louisnard.augmentedreality.views.CompassView;
+import com.louisnard.augmentedreality.views.PointsView;
 
 import java.util.List;
 import java.util.SortedMap;
