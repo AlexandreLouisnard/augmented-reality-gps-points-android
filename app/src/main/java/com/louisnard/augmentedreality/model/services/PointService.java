@@ -2,6 +2,10 @@ package com.louisnard.augmentedreality.model.services;
 
 import com.louisnard.augmentedreality.model.objects.Point;
 
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 /**
  * Helper class that performs operations related to {@link Point}.
  *
@@ -80,4 +84,22 @@ public class PointService {
             return 0;
         }
     }
+    /**
+     * Calculates the relative azimuth of each {@link Point} from {@param points} as seen from {@param originPoint} (which is for instance the user location).
+     * Returns a {@link SortedMap <Float, Point>} mapping:
+     * - As key: each point azimuth, as seen from {@param originPoint}.
+     * - As value: each {@link Point} from {@param points}.
+     * The {@link SortedMap<Float, Point>} is sorted by key value (which means by point azimuth).
+     * @param originPoint the {@link Point} from which to calculate the relative azimuths of the other points. For instance, the user location.
+     * @param points the {@link List <Point>} to sort by relative azimuth.
+     * @return the {@link SortedMap<Float, Point>} of points sorted by azimuth as seen from {@param originPoint}, ans using azimuth values as keys.
+     */
+    public static SortedMap<Float, Point> sortPointsByRelativeAzimuth(Point originPoint, List<Point> points) {
+        SortedMap<Float, Point> pointsSortedMap = new TreeMap<Float, Point>();
+        for (Point p : points) {
+            pointsSortedMap.put(originPoint.azimuthTo(p), p);
+        }
+        return pointsSortedMap;
+    }
+
 }

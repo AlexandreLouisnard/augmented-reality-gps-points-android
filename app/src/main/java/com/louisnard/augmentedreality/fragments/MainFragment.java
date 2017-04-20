@@ -33,12 +33,11 @@ import com.louisnard.augmentedreality.model.services.Compass;
 import com.louisnard.augmentedreality.model.database.DbContract;
 import com.louisnard.augmentedreality.model.database.DbHelper;
 import com.louisnard.augmentedreality.model.objects.Point;
+import com.louisnard.augmentedreality.model.services.PointService;
 import com.louisnard.augmentedreality.views.CompassView;
 import com.louisnard.augmentedreality.views.PointsView;
 
 import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 /**
  * Main fragment showing {@link Compass} data in a {@link CompassView}.
@@ -194,7 +193,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         if (mUserLocationPoint == null || mUserLocationPoint.distanceTo(location) > MIN_DISTANCE_DIFFERENCE_BETWEEN_RECALCULATIONS) {
             if (BuildConfig.DEBUG) Log.d(TAG, "Recalculating points azimuth from the new user location");
             mUserLocationPoint = new Point("", location);
-            mPointsView.setPoints(getPointsSortedMapByAzimuth(mUserLocationPoint, mPoints));
+            mPointsView.setPoints(PointService.sortPointsByRelativeAzimuth(mUserLocationPoint, mPoints));
         }
     }
 
@@ -237,24 +236,6 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
                 getActivity().recreate();
             }
         }
-    }
-
-    /**
-     * Calculates the relative azimuth of each {@link Point} from {@param points} as seen from {@param originPoint} (which is for instance the user location).
-     * Returns a {@link SortedMap<Float, Point>} mapping:
-     * - As key: each point azimuth, as seen from {@param originPoint}.
-     * - As value: each {@link Point} from {@param points}.
-     * The {@link SortedMap<Float, Point>} is sorted by key value (which means by point azimuth).
-     * @param originPoint the {@link Point} from which to calculate the relative azimuths of the other points. For instance, the user location.
-     * @param points the {@link List<Point>} to sort by relative azimuth.
-     * @return the {@link SortedMap<Float, Point>} of points sorted by azimuth as seen from {@param originPoint}, ans using azimuth values as keys.
-     */
-    private SortedMap<Float, Point> getPointsSortedMapByAzimuth(Point originPoint, List<Point> points) {
-        SortedMap<Float, Point> pointsSortedMap = new TreeMap<Float, Point>();
-        for (Point p : points) {
-            pointsSortedMap.put(originPoint.azimuthTo(p), p);
-        }
-        return pointsSortedMap;
     }
 
     // Display an alert dialog asking the user to enable the GPS
