@@ -113,7 +113,7 @@ public class DbHelper extends SQLiteOpenHelper {
      * @return the {@link List<Point>} of all points located around the given {@link Point}.
      */
     public List<Point> getPointsAround(Location location, int distance) {
-        // Delimitate the square within which to find points
+        // Delimit the square within which to find points
         final String latMin = String.valueOf((location.getLatitude() - Point.metersToDegrees(distance)) % 90);
         final String latMax = String.valueOf((location.getLatitude() + Point.metersToDegrees(distance)) % 90);
         final String lonMin = String.valueOf((location.getLongitude() - Point.metersToDegrees(distance)) % 180);

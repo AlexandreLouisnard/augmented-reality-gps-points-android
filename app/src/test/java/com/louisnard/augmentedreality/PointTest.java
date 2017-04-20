@@ -20,7 +20,7 @@ public class PointTest {
     
     // Static methods testing
     /**
-     * Tests static methods {@link Point#degreesToMeters(double)} and {@link Point#metersToDegrees(double)}.
+     * Tests static methods {@link Point#degreesToMeters(double)} and {@link Point#metersToDegrees(int)}.
      */
     @Test
     public void test_degreesToMeters_metersToDegrees() {

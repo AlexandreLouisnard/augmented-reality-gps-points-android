@@ -6,8 +6,6 @@ import android.util.SparseArray;
 
 import com.louisnard.augmentedreality.model.database.DbContract;
 
-import java.util.ArrayList;
-
 /**
  * Class that holds a point and its coordinates.
  *
@@ -102,7 +100,6 @@ public class Point {
     // Constructors
     /**
      * Constructs a new instance of {@link Point} from coordinates.
-     * @param longitude the longitude in degrees.
      * @param longitude the longitude in degrees.
      * @param altitude the altitude in meters.
      * @param name the name.

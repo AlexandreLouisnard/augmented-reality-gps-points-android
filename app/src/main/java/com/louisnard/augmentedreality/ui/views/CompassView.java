@@ -12,7 +12,7 @@ import android.view.View;
 import java.util.Locale;
 
 /**
- * Custom {@link View} drawing a augmentedreality.
+ * Custom {@link View} drawing a compass.
  *
  * @author Alexandre Louisnard
  */
