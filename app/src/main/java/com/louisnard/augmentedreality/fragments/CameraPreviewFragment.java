@@ -35,9 +35,10 @@ import com.louisnard.augmentedreality.R;
 
 import java.util.Arrays;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
- * {@link Fragment} that shows the camera preview using the camera2 API.
+ * {@link Fragment} that shows a camera preview using the camera2 API.
  *
  * @author Alexandre Louisnard
  */
@@ -49,18 +50,16 @@ public class CameraPreviewFragment extends Fragment {
 
     // Camera
     private CameraDevice mCameraDevice;
-    private CaptureRequest.Builder mCameraPreviewBuilder;
-    private CameraCaptureSession mCameraPreviewSession;
+    private CaptureRequest.Builder mPreviewBuilder;
+    private CameraCaptureSession mPreviewSession;
     private Size mPreviewSize;
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
-
-    // Views
-    private TextureView mTextureView;
-
     // Prevent the app from exiting before closing the camera.
     private Semaphore mCameraOpenCloseLock = new Semaphore(1);
 
+    // Views
+    private TextureView mTextureView;
 
     // Request codes
     private final int REQUEST_PERMISSIONS = 1;
@@ -82,18 +81,24 @@ public class CameraPreviewFragment extends Fragment {
 
         // Views
         mTextureView = (TextureView) view.findViewById(R.id.texture_view);
-        mTextureView.setSurfaceTextureListener(mTextureViewSurfaceListener);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        startBackgroundThread();
+        if (mTextureView.isAvailable()) {
+            openCamera();
+        } else {
+            mTextureView.setSurfaceTextureListener(mTextureViewSurfaceListener);
+        }
     }
 
     @Override
     public void onPause() {
+        closeCamera();
+        stopBackgroundThread();
         super.onPause();
-        if (mCameraDevice != null) {
-            mCameraDevice.close();
-        }
-        if (mBackgroundThread != null && mBackgroundHandler != null) {
-            stopBackgroundCameraThread();
-        }
     }
 
     // TextureView listener
@@ -110,8 +115,7 @@ public class CameraPreviewFragment extends Fragment {
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            // Nothing to do
-            return false;
+            return true;
         }
 
         @Override
@@ -121,7 +125,7 @@ public class CameraPreviewFragment extends Fragment {
     };
 
     /**
-     * Opens the camera using camera2 API.
+     * Opens the camera.
      */
     private void openCamera() {
         // Check permission
@@ -135,6 +139,10 @@ public class CameraPreviewFragment extends Fragment {
 
         CameraManager cameraManager = (CameraManager) getContext().getSystemService(Context.CAMERA_SERVICE);
         try {
+            if (BuildConfig.DEBUG) Log.d(TAG, "Trying to open the camera...");
+            if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
+                throw new RuntimeException("Time out waiting to lock camera opening.");
+            }
             String cameraId = cameraManager.getCameraIdList()[0];
             CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
@@ -145,29 +153,59 @@ public class CameraPreviewFragment extends Fragment {
         }
     }
 
+    /**
+     * Closes the camera.
+     */
+    private void closeCamera() {
+        try {
+            mCameraOpenCloseLock.acquire();
+            closePreviewSession();
+            if (null != mCameraDevice) {
+                mCameraDevice.close();
+                mCameraDevice = null;
+            }
+        } catch (InterruptedException e) {
+            if(BuildConfig.DEBUG) Log.d(TAG, "Interrupted while trying to lock camera closing.");
+            e.printStackTrace();
+        } finally {
+            mCameraOpenCloseLock.release();
+        }
+    }
+
     // Camera status listener
     private CameraDevice.StateCallback mCameraDeviceStateCallback = new CameraDevice.StateCallback() {
         @Override
         public void onOpened(CameraDevice camera) {
-            mCameraDevice = camera;
-            startCamera();
+            if (BuildConfig.DEBUG) Log.d(TAG, "CameraDevice.StateCallback onOpened()");
+                    mCameraDevice = camera;
+            startPreview();
+            mCameraOpenCloseLock.release();
+            if (mTextureView != null) {
+                configureTransform(mTextureView.getWidth(), mTextureView.getHeight());
+            }
         }
 
         @Override
         public void onDisconnected(CameraDevice camera) {
-            // Nothing to do
+            if (BuildConfig.DEBUG) Log.d(TAG, "CameraDevice.StateCallback onDisconnected()");
+            mCameraOpenCloseLock.release();
+            camera.close();
+            mCameraDevice = null;
         }
 
         @Override
         public void onError(CameraDevice camera, int error) {
-            // Nothing to do
+            if (BuildConfig.DEBUG) Log.d(TAG, "CameraDevice.StateCallback onError() with error code: " + error);
+            mCameraOpenCloseLock.release();
+            camera.close();
+            mCameraDevice = null;
         }
     };
 
     /**
-     * Starts the camera and sets the preview to mTextureView using the camera2 API.
+     * Starts the camera preview and sets it to mTextureView.
      */
-    private void startCamera() {
+    private void startPreview() {
         if (mCameraDevice == null || !mTextureView.isAvailable() || mPreviewSize == null) {
             return;
         }
@@ -175,18 +213,25 @@ public class CameraPreviewFragment extends Fragment {
         if (texture == null) {
             return;
         }
+        closePreviewSession();
         texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-        Surface surface = new Surface(texture);
+        Surface previewSurface = new Surface(texture);
         try {
-            mCameraPreviewBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            mPreviewBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            mPreviewBuilder.addTarget(previewSurface);
+            mCameraDevice.createCaptureSession(Arrays.asList(previewSurface), mCameraCaptureSessionStateCallback, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        mCameraPreviewBuilder.addTarget(surface);
-        try {
-            mCameraDevice.createCaptureSession(Arrays.asList(surface), mCameraCaptureSessionStateCallback, null);
-        } catch (Exception e) {
-            e.printStackTrace();
+    }
+
+    /**
+     * Closes the camera preview session.
+     */
+    private void closePreviewSession() {
+        if (mPreviewSession != null) {
+            mPreviewSession.close();
+            mPreviewSession = null;
         }
     }
 
@@ -194,38 +239,48 @@ public class CameraPreviewFragment extends Fragment {
     private CameraCaptureSession.StateCallback mCameraCaptureSessionStateCallback = new CameraCaptureSession.StateCallback() {
         @Override
         public void onConfigured(CameraCaptureSession session) {
-            mCameraPreviewSession = session;
-            startBackgroundCameraThread();
+            mPreviewSession = session;
+            updatePreviewThread();
         }
 
         @Override
         public void onConfigureFailed(CameraCaptureSession session) {
-            // Nothing to do
+            if (BuildConfig.DEBUG) Log.d(TAG, "Failed to configure camera capture session.");
         }
     };
 
     /**
-     * Starts a background {@link HandlerThread} and its {@link Handler} for the camera preview.
+     * Updates the camera preview by starting a background {@link HandlerThread} and its {@link Handler}.
+     * {@link #startPreview()} needs to be called in advance.
      */
-    private void startBackgroundCameraThread() {
+    private void updatePreviewThread() {
         if (mCameraDevice == null) {
             return;
         }
-        mCameraPreviewBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-        mBackgroundThread = new HandlerThread("camera_changed_preview");
-        mBackgroundThread.start();
+        mPreviewBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+        HandlerThread thread = new HandlerThread("CameraPreview");
+        thread.start();
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
         try {
-            mCameraPreviewSession.setRepeatingRequest(mCameraPreviewBuilder.build(), null, mBackgroundHandler);
+            mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, mBackgroundHandler);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * Stops the background {@link HandlerThread} and its {@link Handler}.
+     * Starts a background thread and its {@link Handler}.
      */
-    private void stopBackgroundCameraThread() {
+    private void startBackgroundThread() {
+        mBackgroundThread = new HandlerThread("CameraBackground");
+        mBackgroundThread.start();
+        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
+    }
+
+    /**
+     * Stops the background thread and its {@link Handler}.
+     */
+    private void stopBackgroundThread() {
         mBackgroundThread.quitSafely();
         try {
             mBackgroundThread.join();
