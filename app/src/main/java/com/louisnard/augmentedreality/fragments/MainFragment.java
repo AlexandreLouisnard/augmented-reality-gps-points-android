@@ -155,7 +155,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         // Start compass
         if (mCompass != null) mCompass.start(MIN_AZIMUTH_DIFFERENCE_BETWEEN_COMPASS_UPDATES);
 
-        // TODO: FOR TEST USE ONLY: populate database
+        // TODO: for test use only: populate database
         final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
         dbHelper.clearTable(DbContract.PointsColumns.TABLE_NAME);
         dbHelper.addPoints(MockPoint.getPoints());

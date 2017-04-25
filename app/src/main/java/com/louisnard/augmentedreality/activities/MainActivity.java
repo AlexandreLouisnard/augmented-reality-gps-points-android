@@ -5,6 +5,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 
 import com.louisnard.augmentedreality.R;
+import com.louisnard.augmentedreality.fragments.CameraPreviewFragment;
 import com.louisnard.augmentedreality.fragments.MainFragment;
 
 /**
@@ -28,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         // Set fragment
         if (savedInstanceState == null) {
             final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment, new MainFragment());
+            transaction.replace(R.id.fragment, new CameraPreviewFragment()); // TODO: for test use, change fragment
             transaction.commit();
         }
     }
