@@ -2,13 +2,8 @@ package com.louisnard.augmentedreality.fragments;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.hardware.Camera;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -29,10 +24,10 @@ import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.DevUtils;
 import com.louisnard.augmentedreality.R;
 import com.louisnard.augmentedreality.mock.MockPoint;
-import com.louisnard.augmentedreality.model.services.Compass;
 import com.louisnard.augmentedreality.model.database.DbContract;
 import com.louisnard.augmentedreality.model.database.DbHelper;
 import com.louisnard.augmentedreality.model.objects.Point;
+import com.louisnard.augmentedreality.model.services.Compass;
 import com.louisnard.augmentedreality.model.services.PointService;
 import com.louisnard.augmentedreality.views.CompassView;
 import com.louisnard.augmentedreality.views.PointsView;
@@ -67,10 +62,6 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
 
     // Compass
     private Compass mCompass;
-
-    // Camera
-    private float mHorizontalCameraAngle;
-    private float mVerticalCameraAngle;
 
     // Points
     private Point mLastDbReadUserLocationPoint;
@@ -112,18 +103,6 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
 
         // Compass
         mCompass = Compass.newInstance(getContext(), this);
-
-        // Camera
-        final CameraManager cameraManager = (CameraManager) getContext().getSystemService(Context.CAMERA_SERVICE);
-        final String cameraId = getBackCameraId(cameraManager);
-
-        // Use the deprecated Camera class to get the camera angles of view
-        final Camera camera = Camera.open(Integer.valueOf(cameraId));
-        final Camera.Parameters cameraParameters = camera.getParameters();
-        mHorizontalCameraAngle = cameraParameters.getHorizontalViewAngle();
-        mVerticalCameraAngle = cameraParameters.getVerticalViewAngle();
-        camera.release();
-        if (BuildConfig.DEBUG) Log.d(TAG, "Back camera horizontal angle = " + mHorizontalCameraAngle + " and vertical angle = " + mVerticalCameraAngle);
     }
 
     @Nullable
@@ -140,7 +119,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         mRelativeLayout = (RelativeLayout) view.findViewById(R.id.relative_layout);
         mCompassView = (CompassView) view.findViewById(R.id.compass_view);
         mPointsView = (PointsView) view.findViewById(R.id.points_view);
-        mPointsView.setCameraAngles(mHorizontalCameraAngle, mVerticalCameraAngle);
+        // TODO: mPointsView.setCameraAngles(mHorizontalCameraAngle, mVerticalCameraAngle);
     }
 
     @Override
@@ -243,22 +222,5 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         AlertDialogFragment alertDialogFragment = AlertDialogFragment.newInstance(R.string.alert_dialog_title_gps, R.string.alert_dialog_message_enable_gps, android.R.string.ok, android.R.string.cancel);
         alertDialogFragment.setTargetFragment(this, REQUEST_ENABLE_GPS);
         alertDialogFragment.show(getFragmentManager(), AlertDialogFragment.TAG);
-    }
-
-    // Get the device back camera id
-    private String getBackCameraId(CameraManager cameraManager) {
-        try {
-            final String[] cameraIdsList = cameraManager.getCameraIdList();
-            for (String id : cameraIdsList){
-                final CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(id);
-                if(characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
-                    return id;
-                }
-            }
-        } catch (CameraAccessException e) {
-            if (BuildConfig.DEBUG) Log.d(TAG, "Your device does not have a camera.");
-            e.printStackTrace();
-        }
-        return null;
     }
 }

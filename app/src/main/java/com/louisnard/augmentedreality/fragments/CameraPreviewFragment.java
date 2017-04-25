@@ -7,6 +7,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
+import android.hardware.Camera;
+import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
@@ -49,6 +51,7 @@ public class CameraPreviewFragment extends Fragment {
     private static final String TAG = CameraPreviewFragment.class.getSimpleName();
 
     // Camera
+    private CameraManager mCameraManager;
     private CameraDevice mCameraDevice;
     private CaptureRequest.Builder mPreviewBuilder;
     private CameraCaptureSession mPreviewSession;
@@ -67,6 +70,7 @@ public class CameraPreviewFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mCameraManager = (CameraManager) getContext().getSystemService(Context.CAMERA_SERVICE);
     }
 
     @Nullable
@@ -137,18 +141,17 @@ public class CameraPreviewFragment extends Fragment {
             return;
         }
 
-        CameraManager cameraManager = (CameraManager) getContext().getSystemService(Context.CAMERA_SERVICE);
         try {
             if (BuildConfig.DEBUG) Log.d(TAG, "Trying to open the camera...");
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
-            String cameraId = cameraManager.getCameraIdList()[0];
-            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            String cameraId = mCameraManager.getCameraIdList()[0];
+            CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             assert map != null;
             mPreviewSize = map.getOutputSizes(SurfaceTexture.class)[0];
-            cameraManager.openCamera(cameraId, mCameraDeviceStateCallback, null);
+            mCameraManager.openCamera(cameraId, mCameraDeviceStateCallback, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -166,7 +169,7 @@ public class CameraPreviewFragment extends Fragment {
                 mCameraDevice = null;
             }
         } catch (InterruptedException e) {
-            if(BuildConfig.DEBUG) Log.d(TAG, "Interrupted while trying to lock camera closing.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Interrupted while trying to lock camera closing.");
             e.printStackTrace();
         } finally {
             mCameraOpenCloseLock.release();
@@ -178,7 +181,7 @@ public class CameraPreviewFragment extends Fragment {
         @Override
         public void onOpened(@NonNull CameraDevice camera) {
             if (BuildConfig.DEBUG) Log.d(TAG, "CameraDevice.StateCallback onOpened()");
-                    mCameraDevice = camera;
+            mCameraDevice = camera;
             startPreview();
             mCameraOpenCloseLock.release();
             if (mTextureView != null) {
@@ -197,7 +200,8 @@ public class CameraPreviewFragment extends Fragment {
 
         @Override
         public void onError(@NonNull CameraDevice camera, int error) {
-            if (BuildConfig.DEBUG) Log.d(TAG, "CameraDevice.StateCallback onError() with error code: " + error);
+            if (BuildConfig.DEBUG)
+                Log.d(TAG, "CameraDevice.StateCallback onError() with error code: " + error);
             mCameraOpenCloseLock.release();
             camera.close();
             mCameraDevice = null;
@@ -322,6 +326,44 @@ public class CameraPreviewFragment extends Fragment {
             matrix.postRotate(90 * (rotation - 2), centerX, centerY);
         }
         mTextureView.setTransform(matrix);
+    }
+
+    /**
+     * Returns the camera horizontal and vertical angles of view.
+     * @param cameraId the camera id.
+     * @return the angles of view such as:
+     *          result[0] the horizontal angle.
+     *          result[1] the vertical angle.
+     */
+    private float[] getCameraAnglesIfView(String cameraId) {
+        // Use the deprecated Camera class to get the camera angles of view
+        final Camera camera = Camera.open(Integer.valueOf(cameraId));
+        final Camera.Parameters cameraParameters = camera.getParameters();
+        final float horizontalCameraAngle = cameraParameters.getHorizontalViewAngle();
+        final float verticalCameraAngle = cameraParameters.getVerticalViewAngle();
+        camera.release();
+        if (BuildConfig.DEBUG) Log.d(TAG, "Back camera horizontal angle = " + horizontalCameraAngle + " and vertical angle = " + verticalCameraAngle);
+        return new float[] {horizontalCameraAngle, verticalCameraAngle};
+    }
+
+    /**
+     * Returns the device back camera id.
+     * @return the device back camera id.
+     */
+    private String getBackCameraId() {
+        try {
+            final String[] cameraIdsList = mCameraManager.getCameraIdList();
+            for (String id : cameraIdsList){
+                final CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(id);
+                if(characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
+                    return id;
+                }
+            }
+        } catch (CameraAccessException e) {
+            if (BuildConfig.DEBUG) Log.d(TAG, "Your device does not have a camera.");
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
