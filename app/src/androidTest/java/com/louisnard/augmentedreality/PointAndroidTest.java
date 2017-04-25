@@ -4,6 +4,7 @@ import android.location.Location;
 
 import com.louisnard.augmentedreality.mock.MockPoint;
 import com.louisnard.augmentedreality.model.objects.Point;
+import com.louisnard.augmentedreality.model.services.PointService;
 
 import org.junit.Test;
 
@@ -67,32 +68,32 @@ public class PointAndroidTest {
         a = MockPoint.mZeroPoint;
         b = MockPoint.mZeroPoint;
         distance = 0;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * Point.EARTH_RADIUS);
+        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * PointService.EARTH_RADIUS);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
 
         a = MockPoint.mZeroPoint;
         b = MockPoint.mNorthPolePoint;
-        distance = 2 * Math.PI * Point.EARTH_RADIUS / 4;
+        distance = 2 * Math.PI * PointService.EARTH_RADIUS / 4;
         assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
 
         a = MockPoint.mZeroPoint;
         b = MockPoint.mSouthPolePoint;
-        distance = 2 * Math.PI * Point.EARTH_RADIUS / 4;
+        distance = 2 * Math.PI * PointService.EARTH_RADIUS / 4;
         assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
 
 
         a = MockPoint.mZeroPoint;
         b = MockPoint.mZeroAntipodesPoint;
-        distance = 2 * Math.PI * Point.EARTH_RADIUS / 2;
+        distance = 2 * Math.PI * PointService.EARTH_RADIUS / 2;
         assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
 
         a = MockPoint.mDevelopersHomePoint;
         b = MockPoint.mDevelopersHomePoint;
         distance = 0;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * Point.EARTH_RADIUS);
+        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * PointService.EARTH_RADIUS);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
 
         a = MockPoint.mDevelopersHomePoint;
@@ -103,7 +104,7 @@ public class PointAndroidTest {
 
         a = MockPoint.mDevelopersHomePoint;
         b = MockPoint.mDevelopersHomeAntipodesPoint;
-        distance = 2 * Math.PI * Point.EARTH_RADIUS / 2;
+        distance = 2 * Math.PI * PointService.EARTH_RADIUS / 2;
         assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
 

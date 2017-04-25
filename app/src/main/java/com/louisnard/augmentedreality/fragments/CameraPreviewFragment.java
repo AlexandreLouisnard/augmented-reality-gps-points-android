@@ -33,7 +33,7 @@ import android.view.ViewGroup;
 import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.R;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -146,6 +146,7 @@ public class CameraPreviewFragment extends Fragment {
             String cameraId = cameraManager.getCameraIdList()[0];
             CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            assert map != null;
             mPreviewSize = map.getOutputSizes(SurfaceTexture.class)[0];
             cameraManager.openCamera(cameraId, mCameraDeviceStateCallback, null);
         } catch (Exception e) {
@@ -175,7 +176,7 @@ public class CameraPreviewFragment extends Fragment {
     // Camera status listener
     private CameraDevice.StateCallback mCameraDeviceStateCallback = new CameraDevice.StateCallback() {
         @Override
-        public void onOpened(CameraDevice camera) {
+        public void onOpened(@NonNull CameraDevice camera) {
             if (BuildConfig.DEBUG) Log.d(TAG, "CameraDevice.StateCallback onOpened()");
                     mCameraDevice = camera;
             startPreview();
@@ -185,8 +186,9 @@ public class CameraPreviewFragment extends Fragment {
             }
         }
 
+
         @Override
-        public void onDisconnected(CameraDevice camera) {
+        public void onDisconnected(@NonNull CameraDevice camera) {
             if (BuildConfig.DEBUG) Log.d(TAG, "CameraDevice.StateCallback onDisconnected()");
             mCameraOpenCloseLock.release();
             camera.close();
@@ -194,7 +196,7 @@ public class CameraPreviewFragment extends Fragment {
         }
 
         @Override
-        public void onError(CameraDevice camera, int error) {
+        public void onError(@NonNull CameraDevice camera, int error) {
             if (BuildConfig.DEBUG) Log.d(TAG, "CameraDevice.StateCallback onError() with error code: " + error);
             mCameraOpenCloseLock.release();
             camera.close();
@@ -219,7 +221,7 @@ public class CameraPreviewFragment extends Fragment {
         try {
             mPreviewBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewBuilder.addTarget(previewSurface);
-            mCameraDevice.createCaptureSession(Arrays.asList(previewSurface), mCameraCaptureSessionStateCallback, null);
+            mCameraDevice.createCaptureSession(Collections.singletonList(previewSurface), mCameraCaptureSessionStateCallback, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -238,13 +240,13 @@ public class CameraPreviewFragment extends Fragment {
     // Camera capture listener
     private CameraCaptureSession.StateCallback mCameraCaptureSessionStateCallback = new CameraCaptureSession.StateCallback() {
         @Override
-        public void onConfigured(CameraCaptureSession session) {
+        public void onConfigured(@NonNull CameraCaptureSession session) {
             mPreviewSession = session;
             updatePreviewThread();
         }
 
         @Override
-        public void onConfigureFailed(CameraCaptureSession session) {
+        public void onConfigureFailed(@NonNull CameraCaptureSession session) {
             if (BuildConfig.DEBUG) Log.d(TAG, "Failed to configure camera capture session.");
         }
     };

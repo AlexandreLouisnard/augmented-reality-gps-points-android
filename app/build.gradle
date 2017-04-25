@@ -30,5 +30,5 @@ dependencies {
     compile 'com.android.support:support-core-utils:25.3.1'
     // Testing
     testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-core:2.+'
+    testCompile 'org.mockito:mockito-core:2.8.8'
 }

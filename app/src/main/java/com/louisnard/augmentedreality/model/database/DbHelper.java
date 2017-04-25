@@ -164,7 +164,6 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     /**
-     *
      * Adds the given {@link List<Point>} to the {@link SQLiteDatabase}.
      * @param points the {@link List<Point>} to insert.
      * @return the number of successfully inserted rows, or -1 if an error occurred on one or many rows.
