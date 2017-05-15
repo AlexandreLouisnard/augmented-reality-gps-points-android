@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">Augmented Reality GPS Points</string>
 
-    <string name="alert_dialog_title_gps">GPS</string>
-    <string name="alert_dialog_message_enable_gps">Your device GPS is currently disabled. Please enable it.</string>
+    <!-- GPS -->
+    <string name="gps">GPS</string>
+    <string name="gps_disabled_alert_dialog_message">Your device GPS is currently disabled. Please enable it.</string>
+    <string name="gps_disabled">GPS disabled</string>
+    <string name="gps_waiting_for_location">Waiting for GPS location...</string>
+    <string name="gps_located">Last GPS update: %1$d s ago</string>
+
+    <string name="your_location">Your location</string>
+
 </resources>

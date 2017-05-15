@@ -79,7 +79,7 @@ public class PointsView extends View {
      * @param points the {@link SortedMap<Float, Point>} mapping the relative azimuth of the point as the key with the associated {@link Point} as the value. Must be sorted by ascending azimuths.
      */
     public void setPoints(SortedMap<Float, Point> points) {
-        Log.d(TAG, "Updating points list with " + points.size() + " points.");
+        if (BuildConfig.DEBUG) Log.d(TAG, "Updating points list with " + (points != null ? points.size() : 0) + " points.");
         mPoints = points;
         //mVisiblePoints = mPoints.subMap(mAzimuthFrom, mAzimuthTo);
         invalidate();

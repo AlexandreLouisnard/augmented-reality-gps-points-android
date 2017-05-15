@@ -161,33 +161,13 @@ public class Point {
 
     // Calculations
     /**
-     * Returns the approximate distance in meters between this {@link Point} and the given {@link Point}.
-     * Distance is defined using the WGS84 ellipsoid.
-     * @param point the destination {@link Point}.
-     * @return the distance (in meters).
-     */
-    public int distanceTo(Point point) {
-        return (int) mLocation.distanceTo(point.getLocation());
-    }
-
-    /**
-     * Returns the approximate distance in meters between this {@link Point} and the given {@link Location}.
-     * Distance is defined using the WGS84 ellipsoid.
-     * @param location the destination {@link Location}.
-     * @return the distance (in meters).
-     */
-    public int distanceTo(Location location) {
-        return (int) mLocation.distanceTo(location);
-    }
-
-    /**
      * Returns the approximate azimuth in degrees East of true North when traveling along the shortest path from this {@link Point} to the given {@link Point}.
      * The shortest path is defined using the WGS84 ellipsoid. Locations that are (nearly) antipodal may produce meaningless results.
      * @param point the destination {@link Point}.
      * @return the azimuth (in degrees), taken clockwise from north, from 0° to 360°.
      */
     public float azimuthTo(Point point) {
-        // Return cached azimuth to this point, if any
+        // Return cached azimuth to this point, if any (to improve performance)
         if(point.getId() != 0 && mCachedAzimuths.get((int) point.getId()) != null) {
             return mCachedAzimuths.get((int) point.getId());
         // Or calculate the azimuth to this point

@@ -9,16 +9,18 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.DevUtils;
@@ -35,7 +37,7 @@ import com.louisnard.augmentedreality.views.PointsView;
 import java.util.List;
 
 /**
- * Main fragment showing {@link Compass} data in a {@link CompassView}.
+ * Main fragment showing the points around the user location using augmented reality.
  *
  * @author Alexandre Louisnard
  */
@@ -44,6 +46,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
 
     // Tag
     private static final String TAG = MainFragment.class.getSimpleName();
+    private static final String TAG_ALERT_DIALOG_ENABLE_GPS = AlertDialogFragment.TAG + "ENABLE_GPS";
 
     // Constants
     // The minimum distance the user must have moved from its previous location to recalculate azimuths and distances, in meters
@@ -54,28 +57,42 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     private static final int MAX_RADIUS_DISTANCE_TO_SEARCH_POINTS_AROUND = 10000;
     // The minimum time interval between GPS location updates, in milliseconds
     private static final long MIN_TIME_INTERVAL_BETWEEN_LOCATION_UPDATES = 5000;
+    // The maximum age of a location update from the system to be considered as still valid (in order to avoid working with old positions), in milliseconds
+    private static final long MAX_AGE_FOR_A_LOCATION = 3 * 60000;
     // The minimum difference with the last azimuth measured by the compass for the CompassListener to be notified, in degrees
     private static final float MIN_AZIMUTH_DIFFERENCE_BETWEEN_COMPASS_UPDATES = 1;
 
     // Location
     private LocationManager mLocationManager;
+    private Location mLastGpsLocation;
 
     // Compass
     private Compass mCompass;
 
     // Points
-    private Point mLastDbReadUserLocationPoint;
     private Point mUserLocationPoint;
+    private Location mUserLocationAtLastDbReading;
     private List<Point> mPoints;
 
     // Views
-    private RelativeLayout mRelativeLayout;
     private CompassView mCompassView;
     private PointsView mPointsView;
+    private TextView mGpsStatusTextView;
 
     // Request codes
     private final int REQUEST_PERMISSIONS = 1;
     private final int REQUEST_ENABLE_GPS = 2;
+
+    // Check for regular GPS updates
+    // Init
+    private Handler mCheckGpsHandler = new Handler();
+    private Runnable mCheckGpsRunnable = new Runnable() {
+        @Override
+        public void run() {
+            updateGpsStatus();
+            mCheckGpsHandler.postDelayed(this, 1000);
+        }
+    };
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -95,12 +112,6 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         mLocationManager = (LocationManager) getActivity().getSystemService(Activity.LOCATION_SERVICE);
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_INTERVAL_BETWEEN_LOCATION_UPDATES, 5, this);
 
-        // Check that GPS is enabled
-        if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            if (BuildConfig.DEBUG) Log.d(TAG, "GPS is disabled.");
-            showEnableGpsAlertDialog();
-        }
-
         // Compass
         mCompass = Compass.newInstance(getContext(), this);
     }
@@ -116,9 +127,13 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         super.onViewCreated(view, savedInstanceState);
 
         // Views
-        mRelativeLayout = (RelativeLayout) view.findViewById(R.id.relative_layout);
         mCompassView = (CompassView) view.findViewById(R.id.compass_view);
         mPointsView = (PointsView) view.findViewById(R.id.points_view);
+        mGpsStatusTextView = (TextView) view.findViewById(R.id.gps_status_text_view);
+
+        // Check GPS status
+        updateGpsStatus();
+
         // TODO: mPointsView.setCameraAngles(mHorizontalCameraAngle, mVerticalCameraAngle);
     }
 
@@ -133,6 +148,9 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
 
         // Start compass
         if (mCompass != null) mCompass.start(MIN_AZIMUTH_DIFFERENCE_BETWEEN_COMPASS_UPDATES);
+
+        // Start GPS updated check
+        mCheckGpsHandler.postDelayed(mCheckGpsRunnable, 1000);
 
         // TODO: for test use only: populate database
         final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
@@ -158,41 +176,55 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     // LocationListener interface
     @Override
     public void onLocationChanged(Location location) {
-        if (BuildConfig.DEBUG) Log.d(TAG, "LocationListener.onLocationChanged(): " + location.toString());
-
-        // Load points around the user from the database
-        if (mPoints == null || mLastDbReadUserLocationPoint == null || mLastDbReadUserLocationPoint.distanceTo(location) > MIN_DISTANCE_DIFFERENCE_BETWEEN_DATABASE_RELOADS) {
-            mLastDbReadUserLocationPoint = new Point("", location);
-            final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
-            mPoints = dbHelper.getPointsAround(location, MAX_RADIUS_DISTANCE_TO_SEARCH_POINTS_AROUND);
-            if (BuildConfig.DEBUG) Log.d(TAG, "Found " + mPoints.size() + " points in the database around the new user location.");
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "LocationListener.onLocationChanged(): " + location.toString());
+            if (location.isFromMockProvider()) {
+                Log.d(TAG, "Location received is from mock provider");
+            }
         }
 
-        // Update user location and recalculate relative azimuths of points from the new user location
-        if (mUserLocationPoint == null || mUserLocationPoint.distanceTo(location) > MIN_DISTANCE_DIFFERENCE_BETWEEN_RECALCULATIONS) {
-            if (BuildConfig.DEBUG) Log.d(TAG, "Recalculating points azimuth from the new user location");
-            mUserLocationPoint = new Point("", location);
-            mPointsView.setPoints(PointService.sortPointsByRelativeAzimuth(mUserLocationPoint, mPoints));
+        // Check the location validity
+        if (location.getTime() >= System.currentTimeMillis() - MAX_AGE_FOR_A_LOCATION) {
+            mLastGpsLocation = location;
+
+            // Load points around the user from the database
+            if (mPoints == null || mUserLocationAtLastDbReading == null || mUserLocationAtLastDbReading.distanceTo(location) > MIN_DISTANCE_DIFFERENCE_BETWEEN_DATABASE_RELOADS) {
+                mUserLocationAtLastDbReading = location;
+                final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
+                mPoints = dbHelper.getPointsAround(location, MAX_RADIUS_DISTANCE_TO_SEARCH_POINTS_AROUND);
+                if (BuildConfig.DEBUG) Log.d(TAG, "Found " + mPoints.size() + " points in the database around the new user location");
+            }
+
+            // Update user location and recalculate relative azimuths of points from the new user location
+            if (mUserLocationPoint == null || mUserLocationPoint.getLocation().distanceTo(location) > MIN_DISTANCE_DIFFERENCE_BETWEEN_RECALCULATIONS) {
+                if (BuildConfig.DEBUG) Log.d(TAG, "Recalculating points azimuth from the new user location");
+                mUserLocationPoint = new Point(getString(R.string.your_location), location);
+                // Update points view
+                mPointsView.setPoints(PointService.sortPointsByRelativeAzimuth(mUserLocationPoint, mPoints));
+            }
         }
+        updateGpsStatus();
     }
 
     // LocationListener interface
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
         if (BuildConfig.DEBUG) Log.d(TAG, "LocationListener.onStatusChanged()");
+        updateGpsStatus();
     }
 
     // LocationListener interface
     @Override
     public void onProviderEnabled(String provider) {
         if (BuildConfig.DEBUG) Log.d(TAG, "LocationListener.onProviderEnabled()");
+        updateGpsStatus();
     }
 
     // LocationListener interface
     @Override
     public void onProviderDisabled(String provider) {
         if (BuildConfig.DEBUG) Log.d(TAG, "LocationListener.onProviderDisabled()");
-        showEnableGpsAlertDialog();
+        updateGpsStatus();
     }
 
     @Override
@@ -217,10 +249,44 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         }
     }
 
+    // Check GPS status and update UI accordingly
+    // Should be called whenever GPS status has changed
+    private void updateGpsStatus() {
+        if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            if (BuildConfig.DEBUG) Log.d(TAG, "GPS is disabled");
+            mLastGpsLocation = null;
+            mGpsStatusTextView.setText(getString(R.string.gps_disabled));
+            mPointsView.setPoints(null);
+            showEnableGpsAlertDialog();
+        } else {
+            if (BuildConfig.DEBUG) Log.d(TAG, "GPS is enabled");
+            dismissEnableGpsAlertDialog();
+            if (mLastGpsLocation != null && mLastGpsLocation.getTime() >= System.currentTimeMillis() - MAX_AGE_FOR_A_LOCATION) {
+                if (BuildConfig.DEBUG) Log.d(TAG, "GPS located");
+                mGpsStatusTextView.setText(String.format(getString(R.string.gps_located), (System.currentTimeMillis() - mLastGpsLocation.getTime()) / 1000));
+            } else {
+                if (BuildConfig.DEBUG) Log.d(TAG, "GPS waiting for location");
+                mGpsStatusTextView.setText(getString(R.string.gps_waiting_for_location));
+                mPointsView.setPoints(null);
+            }
+        }
+    }
+
     // Display an alert dialog asking the user to enable the GPS
     private void showEnableGpsAlertDialog() {
-        AlertDialogFragment alertDialogFragment = AlertDialogFragment.newInstance(R.string.alert_dialog_title_gps, R.string.alert_dialog_message_enable_gps, android.R.string.ok, android.R.string.cancel);
-        alertDialogFragment.setTargetFragment(this, REQUEST_ENABLE_GPS);
-        alertDialogFragment.show(getFragmentManager(), AlertDialogFragment.TAG);
+        if (getFragmentManager().findFragmentByTag(TAG_ALERT_DIALOG_ENABLE_GPS) == null) {
+            final AlertDialogFragment alertDialogFragment = AlertDialogFragment.newInstance(R.string.gps, R.string.gps_disabled_alert_dialog_message, android.R.string.ok, android.R.string.cancel);
+            alertDialogFragment.setTargetFragment(this, REQUEST_ENABLE_GPS);
+            final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+            fragmentTransaction.add(alertDialogFragment, TAG_ALERT_DIALOG_ENABLE_GPS);
+            fragmentTransaction.commitAllowingStateLoss();
+        }
+    }
+
+    // Dismiss the alert dialog asking the user to enable the GPS
+    private void dismissEnableGpsAlertDialog() {
+        if (getFragmentManager().findFragmentByTag(TAG_ALERT_DIALOG_ENABLE_GPS) != null) {
+            ((AlertDialogFragment) getFragmentManager().findFragmentByTag(TAG_ALERT_DIALOG_ENABLE_GPS)).dismissAllowingStateLoss();
+        }
     }
 }
