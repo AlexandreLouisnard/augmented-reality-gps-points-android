@@ -149,7 +149,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         // Start compass
         if (mCompass != null) mCompass.start(MIN_AZIMUTH_DIFFERENCE_BETWEEN_COMPASS_UPDATES);
 
-        // Start GPS updated check
+        // Start GPS updated checks
         mCheckGpsHandler.postDelayed(mCheckGpsRunnable, 1000);
 
         // TODO: for test use only: populate database
@@ -160,6 +160,9 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
 
     @Override
     public void onPause() {
+        // Stop GPS updated checks
+        mCheckGpsHandler.removeCallbacks(mCheckGpsRunnable);
+
         super.onPause();
 
         // Stop compass
