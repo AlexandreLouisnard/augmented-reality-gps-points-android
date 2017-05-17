@@ -80,6 +80,8 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     private CompassView mCompassView;
     private PointsView mPointsView;
     private TextView mGpsStatusTextView;
+    private TextView mVerticalInclinationTextView;
+    private TextView mHorizontalInclinationTextView;
 
     // Request codes
     private final int REQUEST_PERMISSIONS = 1;
@@ -132,6 +134,8 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         mCompassView = (CompassView) view.findViewById(R.id.compass_view);
         mPointsView = (PointsView) view.findViewById(R.id.points_view);
         mGpsStatusTextView = (TextView) view.findViewById(R.id.gps_status_text_view);
+        mVerticalInclinationTextView = (TextView) view.findViewById(R.id.vertical_inclination_text_view);
+        mHorizontalInclinationTextView = (TextView) view.findViewById(R.id.horizontal_inclination_text_view);
 
         // Check GPS status
         updateGpsStatus();
@@ -175,6 +179,8 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     @Override
     public void onOrientationChanged(float azimuth, float verticalInclination, float horizontalInclination) {
         mCompassView.updateAzimuth(azimuth);
+        mVerticalInclinationTextView.setText(String.format(getString(R.string.vertical_inclination), verticalInclination));
+        mHorizontalInclinationTextView.setText(String.format(getString(R.string.horizontal_inclination), horizontalInclination));
         mPointsView.setAzimuth(azimuth);
     }
 
