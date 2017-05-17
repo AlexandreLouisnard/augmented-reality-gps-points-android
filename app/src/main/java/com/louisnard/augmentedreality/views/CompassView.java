@@ -69,7 +69,7 @@ public class CompassView extends View {
                 mPaint);
 
         // Set text
-        canvas.drawText(String.format(Locale.getDefault(), "%.0f", mAzimuthDegrees), mX, mY, mPaint);
+        canvas.drawText(String.format(Locale.getDefault(), "%.0f °", mAzimuthDegrees), mX, mY, mPaint);
     }
 
     /**

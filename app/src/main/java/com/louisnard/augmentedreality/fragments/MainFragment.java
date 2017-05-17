@@ -59,8 +59,10 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     private static final long MIN_TIME_INTERVAL_BETWEEN_LOCATION_UPDATES = 5000;
     // The maximum age of a location update from the system to be considered as still valid (in order to avoid working with old positions), in milliseconds
     private static final long MAX_AGE_FOR_A_LOCATION = 3 * 60000;
-    // The minimum difference with the last azimuth measured by the compass for the CompassListener to be notified, in degrees
+    // The minimum difference with the last orientation values from Compass for the CompassListener to be notified, in degrees
     private static final float MIN_AZIMUTH_DIFFERENCE_BETWEEN_COMPASS_UPDATES = 1;
+    private static final float MIN_VERTICAL_INCLINATION_DIFFERENCE_BETWEEN_COMPASS_UPDATES = 1;
+    private static final float MIN_HORIZONTAL_INCLINATION_DIFFERENCE_BETWEEN_COMPASS_UPDATES = 1;
 
     // Location
     private LocationManager mLocationManager;
@@ -147,7 +149,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         }
 
         // Start compass
-        if (mCompass != null) mCompass.start(MIN_AZIMUTH_DIFFERENCE_BETWEEN_COMPASS_UPDATES);
+        if (mCompass != null) mCompass.start(MIN_AZIMUTH_DIFFERENCE_BETWEEN_COMPASS_UPDATES, MIN_VERTICAL_INCLINATION_DIFFERENCE_BETWEEN_COMPASS_UPDATES, MIN_HORIZONTAL_INCLINATION_DIFFERENCE_BETWEEN_COMPASS_UPDATES);
 
         // Start GPS updated checks
         mCheckGpsHandler.postDelayed(mCheckGpsRunnable, 1000);
@@ -171,7 +173,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
 
     // CompassListener interface
     @Override
-    public void onAzimuthChanged(float azimuth) {
+    public void onOrientationChanged(float azimuth, float verticalInclination, float horizontalInclination) {
         mCompassView.updateAzimuth(azimuth);
         mPointsView.setAzimuth(azimuth);
     }

@@ -5,7 +5,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 
 import com.louisnard.augmentedreality.R;
-import com.louisnard.augmentedreality.fragments.CameraPreviewFragment;
 import com.louisnard.augmentedreality.fragments.MainFragment;
 
 /**

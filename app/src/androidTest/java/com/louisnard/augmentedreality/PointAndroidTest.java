@@ -22,8 +22,6 @@ public class PointAndroidTest {
     // Error tolerance for calculations
     private final static double ERROR_TOLERANCE = 0.03;
 
-    // Points
-
     // Constructor, getters and setters testing
     /**
      * Tests {@link Point} constructors, getters and setters.
@@ -57,7 +55,7 @@ public class PointAndroidTest {
 
     // Calculation methods testing
     /**
-     * Tests {@link Point#distanceTo(Point)} calculation against values from the website http://www.movable-type.co.uk/scripts/latlong.html
+     * Tests {@link Point#getLocation()#distanceTo(Location)} calculation against values from the website http://www.movable-type.co.uk/scripts/latlong.html
      */
     @Test
     public void test_distanceTo() {
@@ -68,63 +66,63 @@ public class PointAndroidTest {
         a = MockPoint.mZeroPoint;
         b = MockPoint.mZeroPoint;
         distance = 0;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * PointService.EARTH_RADIUS);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+        assertEquals(distance, a.getLocation().distanceTo(b.getLocation()), ERROR_TOLERANCE * PointService.EARTH_RADIUS);
+        assertEquals(a.getLocation().distanceTo(b.getLocation()), b.getLocation().distanceTo(a.getLocation()), 0);
 
         a = MockPoint.mZeroPoint;
         b = MockPoint.mNorthPolePoint;
         distance = 2 * Math.PI * PointService.EARTH_RADIUS / 4;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+        assertEquals(distance, a.getLocation().distanceTo(b.getLocation()), ERROR_TOLERANCE * distance);
+        assertEquals(a.getLocation().distanceTo(b.getLocation()), b.getLocation().distanceTo(a.getLocation()), 0);
 
         a = MockPoint.mZeroPoint;
         b = MockPoint.mSouthPolePoint;
         distance = 2 * Math.PI * PointService.EARTH_RADIUS / 4;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+        assertEquals(distance, a.getLocation().distanceTo(b.getLocation()), ERROR_TOLERANCE * distance);
+        assertEquals(a.getLocation().distanceTo(b.getLocation()), b.getLocation().distanceTo(a.getLocation()), 0);
 
 
         a = MockPoint.mZeroPoint;
         b = MockPoint.mZeroAntipodesPoint;
         distance = 2 * Math.PI * PointService.EARTH_RADIUS / 2;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+        assertEquals(distance, a.getLocation().distanceTo(b.getLocation()), ERROR_TOLERANCE * distance);
+        assertEquals(a.getLocation().distanceTo(b.getLocation()), b.getLocation().distanceTo(a.getLocation()), 0);
 
         a = MockPoint.mDevelopersHomePoint;
         b = MockPoint.mDevelopersHomePoint;
         distance = 0;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * PointService.EARTH_RADIUS);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+        assertEquals(distance, a.getLocation().distanceTo(b.getLocation()), ERROR_TOLERANCE * PointService.EARTH_RADIUS);
+        assertEquals(a.getLocation().distanceTo(b.getLocation()), b.getLocation().distanceTo(a.getLocation()), 0);
 
         a = MockPoint.mDevelopersHomePoint;
         b = MockPoint.mNorthPolePoint;
         distance = 4982000;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+        assertEquals(distance, a.getLocation().distanceTo(b.getLocation()), ERROR_TOLERANCE * distance);
+        assertEquals(a.getLocation().distanceTo(b.getLocation()), b.getLocation().distanceTo(a.getLocation()), 0);
 
         a = MockPoint.mDevelopersHomePoint;
         b = MockPoint.mDevelopersHomeAntipodesPoint;
         distance = 2 * Math.PI * PointService.EARTH_RADIUS / 2;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+        assertEquals(distance, a.getLocation().distanceTo(b.getLocation()), ERROR_TOLERANCE * distance);
+        assertEquals(a.getLocation().distanceTo(b.getLocation()), b.getLocation().distanceTo(a.getLocation()), 0);
 
         a = MockPoint.mDevelopersHomePoint;
         b = MockPoint.mZeroPoint;
         distance = 5057000;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+        assertEquals(distance, a.getLocation().distanceTo(b.getLocation()), ERROR_TOLERANCE * distance);
+        assertEquals(a.getLocation().distanceTo(b.getLocation()), b.getLocation().distanceTo(a.getLocation()), 0);
 
         a = MockPoint.mDevelopersHomePoint;
         b = MockPoint.mRachaisPoint;
         distance = 5578;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+        assertEquals(distance, a.getLocation().distanceTo(b.getLocation()), ERROR_TOLERANCE * distance);
+        assertEquals(a.getLocation().distanceTo(b.getLocation()), b.getLocation().distanceTo(a.getLocation()), 0);
 
         a = MockPoint.mDevelopersHomePoint;
         b = MockPoint.mMontBlancPoint;
         distance = 113100;
-        assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
-        assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
+        assertEquals(distance, a.getLocation().distanceTo(b.getLocation()), ERROR_TOLERANCE * distance);
+        assertEquals(a.getLocation().distanceTo(b.getLocation()), b.getLocation().distanceTo(a.getLocation()), 0);
     }
 
     /**
