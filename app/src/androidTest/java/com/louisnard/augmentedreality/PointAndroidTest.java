@@ -41,7 +41,7 @@ public class PointAndroidTest {
         a.setName("Mont Rachais");
         a.setLatitude(45.2417);
         a.setLongitude(5.7436);
-        a.setElevation(1046);
+        a.setAltitude(1046);
         assertEquals("Mont Rachais", a.getName());
         assertEquals(45.2417, a.getLatitude(), 0);
         assertEquals(5.7436, a.getLongitude(), 0);

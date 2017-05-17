@@ -39,7 +39,7 @@ public class DbHelper extends SQLiteOpenHelper {
             + DbContract.PointsColumns.COLUMN_NAME + " TEXT,"
             + DbContract.PointsColumns.COLUMN_LATITUDE + " REAL,"
             + DbContract.PointsColumns.COLUMN_LONGITUDE + " REAL,"
-            + DbContract.PointsColumns.COLUMN_ELEVATION + " INTEGER)";
+            + DbContract.PointsColumns.COLUMN_ALTITUDE + " INTEGER)";
 
     /**
      * Constructs a new instance of {@link DbHelper}.
@@ -194,7 +194,7 @@ public class DbHelper extends SQLiteOpenHelper {
         values.put(DbContract.PointsColumns.COLUMN_NAME, point.getName());
         values.put(DbContract.PointsColumns.COLUMN_LATITUDE, point.getLatitude());
         values.put(DbContract.PointsColumns.COLUMN_LONGITUDE, point.getLongitude());
-        values.put(DbContract.PointsColumns.COLUMN_ELEVATION, point.getAltitude());
+        values.put(DbContract.PointsColumns.COLUMN_ALTITUDE, point.getAltitude());
         final long result = db.insert(DbContract.PointsColumns.TABLE_NAME, null, values);
         if (result == -1) {
             if (BuildConfig.DEBUG) Log.d(TAG, "Error inserting the point: \"" + point.getName() + "\" into the database.");

@@ -63,7 +63,7 @@ public class Point {
             mLocation = new Location("");
             mLocation.setLatitude(cursor.getDouble(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_LATITUDE)));
             mLocation.setLongitude(cursor.getDouble(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_LONGITUDE)));
-            mLocation.setAltitude(cursor.getInt(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_ELEVATION)));
+            mLocation.setAltitude(cursor.getInt(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_ALTITUDE)));
         }
     }
 
@@ -109,8 +109,8 @@ public class Point {
     }
 
     /**
-     * Gets this {@link Point} elevation above the sea level in meters.
-     * @return the elevation in meters.
+     * Gets this {@link Point} elevation / altitude above the sea level in meters.
+     * @return the altitude in meters.
      */
     public int getAltitude() {
         return (int) mLocation.getAltitude();
@@ -155,7 +155,7 @@ public class Point {
      * Sets this {@link Point} altitude above the sea level in meters.
      * @param altitude the altitude in meters.
      */
-    public void setElevation(int altitude) {
+    public void setAltitude(int altitude) {
         mLocation.setAltitude(altitude);
     }
 
@@ -164,7 +164,7 @@ public class Point {
      * Returns the approximate azimuth in degrees East of true North when traveling along the shortest path from this {@link Point} to the given {@link Point}.
      * The shortest path is defined using the WGS84 ellipsoid. Locations that are (nearly) antipodal may produce meaningless results.
      * @param point the destination {@link Point}.
-     * @return the azimuth (in degrees), taken clockwise from north, from 0° to 360°.
+     * @return the azimuth to this point (in degrees), taken clockwise from north, from 0° to 360°.
      */
     public float azimuthTo(Point point) {
         // Return cached azimuth to this point, if any (to improve performance)
@@ -179,5 +179,22 @@ public class Point {
             mCachedAzimuths.setValueAt((int) point.getId(), azimuth);
             return azimuth;
         }
+    }
+
+    /**
+     * Returns the approximate vertical angle in degrees from this {@link Point} to the given {@link Point}.
+     * If the destination point has the same altitude than this point, the angle will be 0°.
+     * If the destination point is higher than this point, the angle will be positive: 0° < angle < 90°..
+     * If the destination point is lower than this point, the angle will be negative: -90° < angle < 0°.
+     * If the destination point has the same horizontal location (latitude and longitude) than this point, the angle will be 90° or -90°.
+     * @param point the destination {@link Point}.
+     * @return the vertical angle to this point (in degrees), from -90° to 90°.
+     */
+    public float verticalAngleTo(Point point) {
+        // TODO: write the tests for this and test it
+        final float distance = getLocation().distanceTo(point.getLocation());
+        final float heightDifference = (float) (point.getLocation().getAltitude() - getLocation().getAltitude());
+        final float angle = (float) Math.atan(heightDifference / distance);
+        return (float) Math.toDegrees(angle);
     }
 }
