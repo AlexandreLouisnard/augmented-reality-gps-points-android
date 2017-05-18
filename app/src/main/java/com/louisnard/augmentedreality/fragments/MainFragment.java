@@ -207,7 +207,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
             }
 
             // Update user location and recalculate relative azimuths of points from the new user location
-            if (mUserLocationPoint == null || mUserLocationPoint.getLocation().distanceTo(location) > MIN_DISTANCE_DIFFERENCE_BETWEEN_RECALCULATIONS) {
+            if (mUserLocationPoint == null || mUserLocationPoint.distanceTo(location) > MIN_DISTANCE_DIFFERENCE_BETWEEN_RECALCULATIONS) {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Recalculating points azimuth from the new user location");
                 mUserLocationPoint = new Point(getString(R.string.your_location), location);
                 // Update points view

@@ -19,6 +19,8 @@ public class MockPoint {
     public static Point mNorthPolePoint = new Point("North Pole", 90, 0, 0);
     public static Point mSouthPolePoint = new Point("South Pole", -90, 0, 0);
     public static Point mDevelopersHomePoint = new Point("Developer's home :-)", 45.1916626, 5.7385538, 250);
+    public static Point mDevelopersHomeBasementPoint = new Point("Developer's home :-)", 45.1916626, 5.7385538, 220);
+    public static Point mDevelopersHomeRooftopPoint = new Point("Developer's home :-)", 45.1916626, 5.7385538, 320);
     public static Point mDevelopersHomeAntipodesPoint = new Point("Developer's home antipodes", -45.191663, -174.261446, 245);
     public static Point mDevelopersWorkplacePoint = new Point("Developer's workplace", 45.1927864, 5.712356, 220);
     public static Point mBastillePoint = new Point("Fort de La Bastille", 45.1987, 5.7253, 476);

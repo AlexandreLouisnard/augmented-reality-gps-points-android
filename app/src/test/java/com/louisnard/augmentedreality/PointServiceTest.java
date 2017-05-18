@@ -1,24 +1,22 @@
 package com.louisnard.augmentedreality;
 
-import com.louisnard.augmentedreality.model.objects.Point;
 import com.louisnard.augmentedreality.model.services.PointService;
 
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
 
-
 /**
- * Unit testing for the {@link Point} class.
+ * Unit testing for the {@link PointService} class.
  *
  * @author Alexandre Louisnard
  */
 
-public class PointTest {
+public class PointServiceTest {
 
     // Error tolerance for calculations
     private final static double ERROR_TOLERANCE = 0.001;
-    
+
     // Static methods testing
     /**
      * Tests static methods {@link PointService#degreesToMeters(double)} and {@link PointService#metersToDegrees(int)}.
@@ -27,6 +25,22 @@ public class PointTest {
     public void test_degreesToMeters_metersToDegrees() {
         float angle = 0;
         int distance = 0;
+        assertEquals(distance, PointService.degreesToMeters(angle), ERROR_TOLERANCE * distance);
+        assertEquals(angle, PointService.metersToDegrees(distance), ERROR_TOLERANCE * distance);
+
+        // 1° of latitude or longitude is worth around 111 km
+        angle = 1;
+        distance = 111100;
+        assertEquals(distance, PointService.degreesToMeters(angle), ERROR_TOLERANCE * distance);
+        assertEquals(angle, PointService.metersToDegrees(distance), ERROR_TOLERANCE * distance);
+
+        angle = -1;
+        distance = 111100;
+        assertEquals(distance, PointService.degreesToMeters(angle), ERROR_TOLERANCE * distance);
+        assertEquals(angle, PointService.metersToDegrees(distance), ERROR_TOLERANCE * distance);
+
+        angle = 2;
+        distance = 222200;
         assertEquals(distance, PointService.degreesToMeters(angle), ERROR_TOLERANCE * distance);
         assertEquals(angle, PointService.metersToDegrees(distance), ERROR_TOLERANCE * distance);
 
@@ -59,18 +73,11 @@ public class PointTest {
         distance = (int) (2 * Math.PI * PointService.EARTH_RADIUS);
         assertEquals(distance, PointService.degreesToMeters(angle), ERROR_TOLERANCE * distance);
         assertEquals(angle, PointService.metersToDegrees(distance), ERROR_TOLERANCE * distance);
-
-        angle = 1;
-        distance = (int) (2 * Math.PI * PointService.EARTH_RADIUS / 360);
-        assertEquals(distance, PointService.degreesToMeters(angle), ERROR_TOLERANCE * distance);
-        assertEquals(angle, PointService.metersToDegrees(distance), ERROR_TOLERANCE * distance);
-
-        angle = -1;
-        distance = (int) (2 * Math.PI * PointService.EARTH_RADIUS / 360);
-        assertEquals(distance, PointService.degreesToMeters(angle), ERROR_TOLERANCE * distance);
-        assertEquals(angle, PointService.metersToDegrees(distance), ERROR_TOLERANCE * distance);
     }
 
+    /**
+     * Tests static methods {@link PointService#getValidLatitude(double)}.
+     */
     @Test
     public void test_getValidLatitude() {
         assertEquals(12.123456789, PointService.getValidLatitude(12.123456789), 0);
@@ -104,6 +111,9 @@ public class PointTest {
         assertEquals(-50, PointService.getValidLatitude(3550), 0);
     }
 
+    /**
+     * Tests static methods {@link PointService#getValidLongitude(double)}.
+     */
     @Test
     public void test_getValidLongitude() {
         assertEquals(123.456789, PointService.getValidLongitude(123.456789), 0);

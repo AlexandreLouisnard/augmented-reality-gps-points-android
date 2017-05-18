@@ -161,6 +161,26 @@ public class Point {
 
     // Calculations
     /**
+     * Returns the approximate distance in meters between this {@link Point} and the given {@link Point}.
+     * Distance is defined using the WGS84 ellipsoid.
+     * @param point the destination {@link Point}.
+     * @return the distance (in meters).
+     */
+    public int distanceTo(Point point) {
+        return (int) mLocation.distanceTo(point.getLocation());
+    }
+
+    /**
+     * Returns the approximate distance in meters between this {@link Point} and the given {@link Location}.
+     * Distance is defined using the WGS84 ellipsoid.
+     * @param location the destination {@link Location}.
+     * @return the distance (in meters).
+     */
+    public int distanceTo(Location location) {
+        return (int) mLocation.distanceTo(location);
+    }
+
+    /**
      * Returns the approximate azimuth in degrees East of true North when traveling along the shortest path from this {@link Point} to the given {@link Point}.
      * The shortest path is defined using the WGS84 ellipsoid. Locations that are (nearly) antipodal may produce meaningless results.
      * @param point the destination {@link Point}.
@@ -191,10 +211,13 @@ public class Point {
      * @return the vertical angle to this point (in degrees), from -90° to 90°.
      */
     public float verticalAngleTo(Point point) {
-        // TODO: write the tests for this and test it
-        final float distance = getLocation().distanceTo(point.getLocation());
+        final float distance = distanceTo(point);
         final float heightDifference = (float) (point.getLocation().getAltitude() - getLocation().getAltitude());
-        final float angle = (float) Math.atan(heightDifference / distance);
-        return (float) Math.toDegrees(angle);
+        if (distance == 0) {
+            return heightDifference >= 0 ? 90f : -90f;
+        } else {
+            final float angle = (float) Math.atan(heightDifference / distance);
+            return (float) Math.toDegrees(angle);
+        }
     }
 }
