@@ -8,7 +8,7 @@ import com.louisnard.augmentedreality.R;
 import com.louisnard.augmentedreality.fragments.MainFragment;
 
 /**
- * Main activity showing a {@link android.support.v4.app.Fragment}.
+ * Main activity showing a {@link android.support.v4.app.Fragment}.<br>
  *
  * @author Alexandre Louisnard
  */

@@ -37,7 +37,7 @@ import com.louisnard.augmentedreality.views.PointsView;
 import java.util.List;
 
 /**
- * Main fragment showing the points around the user location using augmented reality.
+ * Main fragment showing the points around the user location using augmented reality.<br>
  *
  * @author Alexandre Louisnard
  */
@@ -181,7 +181,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         mCompassView.updateAzimuth(azimuth);
         mVerticalInclinationTextView.setText(String.format(getString(R.string.vertical_inclination), verticalInclination));
         mHorizontalInclinationTextView.setText(String.format(getString(R.string.horizontal_inclination), horizontalInclination));
-        mPointsView.setAzimuth(azimuth);
+        mPointsView.updateOrientation(azimuth, verticalInclination, horizontalInclination);
     }
 
     // LocationListener interface
@@ -211,7 +211,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
                 if (BuildConfig.DEBUG) Log.d(TAG, "Recalculating points azimuth from the new user location");
                 mUserLocationPoint = new Point(getString(R.string.your_location), location);
                 // Update points view
-                mPointsView.setPoints(PointService.sortPointsByRelativeAzimuth(mUserLocationPoint, mPoints));
+                mPointsView.setPoints(mUserLocationPoint, PointService.sortPointsByRelativeAzimuth(mUserLocationPoint, mPoints));
             }
         }
         updateGpsStatus();
@@ -267,7 +267,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
             if (BuildConfig.DEBUG) Log.d(TAG, "GPS is disabled");
             mLastGpsLocation = null;
             mGpsStatusTextView.setText(getString(R.string.gps_disabled));
-            mPointsView.setPoints(null);
+            mPointsView.setPoints(null, null);
             showEnableGpsAlertDialog();
         } else {
             if (BuildConfig.DEBUG) Log.d(TAG, "GPS is enabled");
@@ -278,7 +278,7 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
             } else {
                 if (BuildConfig.DEBUG) Log.d(TAG, "GPS waiting for location");
                 mGpsStatusTextView.setText(getString(R.string.gps_waiting_for_location));
-                mPointsView.setPoints(null);
+                mPointsView.setPoints(null, null);
             }
         }
     }

@@ -8,7 +8,7 @@ import com.louisnard.augmentedreality.model.database.DbContract;
 import com.louisnard.augmentedreality.model.services.PointService;
 
 /**
- * Class that holds a point and its coordinates.
+ * Class that holds a point and its coordinates.<br>
  *
  * @author Alexandre Louisnard
  */
@@ -24,8 +24,9 @@ public class Point {
     // Coordinates in degrees
     private Location mLocation;
 
-    // Cached azimuths to other points
+    // Cached azimuths and vertical angles to other points
     private SparseArray<Float> mCachedAzimuths = new SparseArray<>();
+    private SparseArray<Float> mCachedVerticalAngles = new SparseArray<>();
 
     // Constructors
     /**
@@ -131,6 +132,8 @@ public class Point {
      */
     public void setLocation(Location location) {
         mLocation = location;
+        mCachedAzimuths.clear();
+        mCachedVerticalAngles.clear();
     }
 
     /**
@@ -140,6 +143,7 @@ public class Point {
     public void setLatitude(double latitude) {
         mLocation.setLatitude(PointService.getValidLatitude(latitude));
         mCachedAzimuths.clear();
+        mCachedVerticalAngles.clear();
     }
 
     /**
@@ -149,6 +153,7 @@ public class Point {
     public void setLongitude(double longitude) {
         mLocation.setLongitude(PointService.getValidLongitude(longitude));
         mCachedAzimuths.clear();
+        mCachedVerticalAngles.clear();
     }
 
     /**
@@ -157,11 +162,12 @@ public class Point {
      */
     public void setAltitude(int altitude) {
         mLocation.setAltitude(altitude);
+        mCachedVerticalAngles.clear();
     }
 
     // Calculations
     /**
-     * Returns the approximate distance in meters between this {@link Point} and the given {@link Point}.
+     * Returns the approximate distance in meters between this {@link Point} and the given {@link Point}.<br>
      * Distance is defined using the WGS84 ellipsoid.
      * @param point the destination {@link Point}.
      * @return the distance (in meters).
@@ -171,7 +177,7 @@ public class Point {
     }
 
     /**
-     * Returns the approximate distance in meters between this {@link Point} and the given {@link Location}.
+     * Returns the approximate distance in meters between this {@link Point} and the given {@link Location}.<br>
      * Distance is defined using the WGS84 ellipsoid.
      * @param location the destination {@link Location}.
      * @return the distance (in meters).
@@ -181,7 +187,7 @@ public class Point {
     }
 
     /**
-     * Returns the approximate azimuth in degrees East of true North when traveling along the shortest path from this {@link Point} to the given {@link Point}.
+     * Returns the approximate azimuth in degrees East of true North when traveling along the shortest path from this {@link Point} to the given {@link Point}.<br>
      * The shortest path is defined using the WGS84 ellipsoid. Locations that are (nearly) antipodal may produce meaningless results.
      * @param point the destination {@link Point}.
      * @return the azimuth to this point (in degrees), taken clockwise from north, from 0° to 360°.
@@ -202,22 +208,32 @@ public class Point {
     }
 
     /**
-     * Returns the approximate vertical angle in degrees from this {@link Point} to the given {@link Point}.
-     * If the destination point has the same altitude than this point, the angle will be 0°.
-     * If the destination point is higher than this point, the angle will be positive: 0° < angle < 90°..
-     * If the destination point is lower than this point, the angle will be negative: -90° < angle < 0°.
+     * Returns the approximate vertical angle in degrees from this {@link Point} to the given {@link Point}.<br>
+     * If the destination point has the same altitude than this point, the angle will be 0°.<br>
+     * If the destination point is higher than this point, the angle will be positive: 0° < angle < 90°.<br>
+     * If the destination point is lower than this point, the angle will be negative: -90° < angle < 0°.<br>
      * If the destination point has the same horizontal location (latitude and longitude) than this point, the angle will be 90° or -90°.
      * @param point the destination {@link Point}.
      * @return the vertical angle to this point (in degrees), from -90° to 90°.
      */
     public float verticalAngleTo(Point point) {
-        final float distance = distanceTo(point);
-        final float heightDifference = (float) (point.getLocation().getAltitude() - getLocation().getAltitude());
-        if (distance == 0) {
-            return heightDifference >= 0 ? 90f : -90f;
+        // Return cached vertical angle to this point, if any (to improve performance)
+        if(point.getId() != 0 && mCachedVerticalAngles.get((int) point.getId()) != null) {
+            return mCachedVerticalAngles.get((int) point.getId());
+        // Or calculate the vertical angle to this point
         } else {
-            final float angle = (float) Math.atan(heightDifference / distance);
-            return (float) Math.toDegrees(angle);
+            final float distance = distanceTo(point);
+            final float heightDifference = (float) (point.getLocation().getAltitude() - getLocation().getAltitude());
+            float angle;
+            if (distance == 0) {
+                angle = heightDifference >= 0 ? 90f : -90f;
+            } else {
+                angle = (float) Math.toDegrees(
+                        Math.atan(heightDifference / distance)
+                );
+            }
+            mCachedVerticalAngles.setValueAt((int) point.getId(), angle);
+            return angle;
         }
     }
 }

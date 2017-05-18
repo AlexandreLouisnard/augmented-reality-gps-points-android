@@ -3,7 +3,7 @@ package com.louisnard.augmentedreality.model.database;
 import android.provider.BaseColumns;
 
 /**
- * Contract class that defines the tables for the database.
+ * Contract class that defines the tables for the database.<br>
  *
  * @author Alexandre Louisnard
  */

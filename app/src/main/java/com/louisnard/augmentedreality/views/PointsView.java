@@ -17,7 +17,7 @@ import com.louisnard.augmentedreality.model.objects.Point;
 import java.util.SortedMap;
 
 /**
- * {@link View} class that places and displays points from a {@link SortedMap<Float, Point>} depending on their azimuth.
+ * {@link View} class that places and displays points from a {@link SortedMap<Float, Point>} depending on their azimuth.<br>
  *
  * @author Alexandre Louisnard
  */
@@ -32,9 +32,15 @@ public class PointsView extends View {
 
     // Points
     private SortedMap<Float, Point> mPoints;
-    //private SortedMap<Float, Point> mVisiblePoints;
-    private float mAzimuthFrom;
-    private float mAzimuthTo;
+    private Point mUserPoint;
+
+    // Device and view orientations
+    private float mAzimuthViewLeft;
+    private float mAzimuthViewRight;
+    private float mVerticalAngleViewCenter;
+    private float mVerticalAngleViewTop;
+    private float mVerticalAngleViewBottom;
+    private float mHorizontalInclination;
 
     // Screen to camera angles ratios: the number of pixels on the screen associated to a one degree variation on the camera
     // Default values are those of a Nexus 4 camera
@@ -58,8 +64,8 @@ public class PointsView extends View {
     }
 
     /**
-     * Sets the device camera angles of view.
-     * This angle of view is used to calculate the placement of the points.
+     * Sets the device camera angles of view.<br>
+     * This angle of view is used to calculate the placement of the points.<br>
      * If not set, default values are those of a Nexus 4: horizontal angle = 54.8° and vertical angle = 42.5°.
      * @param horizontalCameraAngle the horizontal angle of view in degrees.
      * @param verticalCameraAngle the vertical angle of view in degrees.
@@ -77,28 +83,34 @@ public class PointsView extends View {
     /**
      * Sets the points that will be displayed in the {@link PointsView}.
      * @param points the {@link SortedMap<Float, Point>} mapping the relative azimuth of the point as the key with the associated {@link Point} as the value. Must be sorted by ascending azimuths.
+     * @param userPoint the current user location point, used as a reference.
      */
-    public void setPoints(SortedMap<Float, Point> points) {
+    public void setPoints(Point userPoint, SortedMap<Float, Point> points) {
         if (BuildConfig.DEBUG) Log.d(TAG, "Updating points list with " + (points != null ? points.size() : 0) + " points.");
+        mUserPoint = userPoint;
         mPoints = points;
-        //mVisiblePoints = mPoints.subMap(mAzimuthFrom, mAzimuthTo);
         invalidate();
     }
 
     /**
-     * Sets the azimuth at the center of the {@link PointsView}.
+     * Updates the orientation: azimuth, vertical inclination and horizontal inclination of the device.<br>
+     * On them depends which points will be displayed and where will they be on the {@link PointsView};
      * @param azimuth the azimuth in degrees.
+     * @param verticalInclination the vertical inclination in degrees.
+     * @param horizontalInclination the horizontal inclination in degrees.<br>
      */
-    public void setAzimuth(float azimuth) {
-        // mAzimuthFrom can be <0° in some cases
-        mAzimuthFrom = (azimuth - mHorizontalCameraAngle / 2);
-        /*if (mAzimuthFrom < 0) {
-            mAzimuthFrom += 360;
-        }*/
-        // mAzimuthTo can be >360° in some cases
-        mAzimuthTo = (azimuth + mHorizontalCameraAngle / 2);// % 360;
+    public void updateOrientation(float azimuth, float verticalInclination, float horizontalInclination) {
+        mAzimuthViewLeft = (azimuth - mHorizontalCameraAngle / 2);
+        mAzimuthViewRight = (azimuth + mHorizontalCameraAngle / 2);
+        // When the device screen is held perpendicular to the ground, its camera is pointing horizontally towards the landscape:
+        //      - The device vertical inclination -90°.
+        //      - The vertical angle of the points displayed at the center of the view is 0°.
+        mVerticalAngleViewCenter = verticalInclination + 90;
+        mVerticalAngleViewTop = mVerticalAngleViewCenter + mVerticalCameraAngle / 2;
+        mVerticalAngleViewBottom = mVerticalAngleViewCenter - mVerticalCameraAngle / 2;
+        mHorizontalInclination = horizontalInclination;
+        // Update view
         if (mPoints != null) {
-            //mVisiblePoints = mPoints.subMap(mAzimuthFrom, mAzimuthTo);
             invalidate();
         }
     }
@@ -118,11 +130,12 @@ public class PointsView extends View {
         }
 
         // Draw visible points on canvas
-        if (mPoints != null && !mPoints.isEmpty()) {
+        if (mUserPoint != null && mPoints != null && !mPoints.isEmpty()) {
             for (SortedMap.Entry<Float, Point> entry : mPoints.entrySet()) {
                 final int x = azimuthToXPixelCoordinate(entry.getKey());
-                final int y = getHeight() / 2; // TODO: handle vertical placement of points
-                if (x != 0) {
+                final int y = verticalAngleToYPixelCoordinate(mUserPoint.verticalAngleTo(entry.getValue()));
+                // TODO: check that vertical placement of points is correct
+                if (x != -1 && y != -1) {
                     final Drawable drawable = getResources().getDrawable(R.drawable.ic_arrow_drop_down_24dp, null);
                     drawable.setBounds(x - ARROW_SIZE/2, y - ARROW_SIZE, x + ARROW_SIZE/2, y);
                     drawable.draw(canvas);
@@ -133,26 +146,37 @@ public class PointsView extends View {
     }
 
     /**
-     * Returns the the x coordinate value in pixels where the point should be horizontally placed on the {@link PointsView} depending on its azimuth.
-     * Returns 0 if the point is located outside of the {@link PointsView}.
+     * Returns the the x coordinate value in pixels where the point should be horizontally placed on the {@link PointsView} depending on its azimuth.<br>
+     * Returns -1 if the point is located outside of the {@link PointsView}.
      * @param azimuth the azimuth of the point in degrees. It should be 0 < azimuth < 360.
-     * @return the x coordinate in pixels or 0 if it is located outside of the view.
+     * @return the x coordinate in pixels or -1 if it is located outside of the view.
      */
     private int azimuthToXPixelCoordinate(float azimuth) {
+        // TODO: handle horizontal inclination impact on X coordinates
         // Invalid azimuth
         if (azimuth < 0 || azimuth >= 360) {
-            return 0;
+            return -1;
         // Normal case : 0 < azimuthFrom < azimuth < azimuthTo < 360
-        } else if (azimuth > mAzimuthFrom && azimuth < mAzimuthTo) {
-            return (int) (mHorizontalPixelsPerDegree * (azimuth - mAzimuthFrom - (mAzimuthTo - mAzimuthFrom) / 2) + getWidth() / 2);
+        } else if (azimuth > mAzimuthViewLeft && azimuth < mAzimuthViewRight) {
+            return (int) (mHorizontalPixelsPerDegree * (azimuth - mAzimuthViewLeft - (mAzimuthViewRight - mAzimuthViewLeft) / 2) + getWidth() / 2);
         // Special case 1 : azimuthFrom < 0 < azimuth < azimuthTo < 360
-        } else if (mAzimuthFrom < 0 && azimuth > 360 + mAzimuthFrom) {
-            return (int) (mHorizontalPixelsPerDegree * (azimuth - 360 - mAzimuthFrom - (mAzimuthTo - mAzimuthFrom) / 2) + getWidth() / 2);
+        } else if (mAzimuthViewLeft < 0 && azimuth > 360 + mAzimuthViewLeft) {
+            return (int) (mHorizontalPixelsPerDegree * (azimuth - 360 - mAzimuthViewLeft - (mAzimuthViewRight - mAzimuthViewLeft) / 2) + getWidth() / 2);
         // Special case 2 : 0 < azimuthFrom < azimuth < 360 < azimuthTo
-        } else if (mAzimuthTo > 360 && azimuth < mAzimuthTo - 360) {
-            return (int) (mHorizontalPixelsPerDegree * (azimuth + 360 - mAzimuthFrom - (mAzimuthTo - mAzimuthFrom) / 2) + getWidth() / 2);
+        } else if (mAzimuthViewRight > 360 && azimuth < mAzimuthViewRight - 360) {
+            return (int) (mHorizontalPixelsPerDegree * (azimuth + 360 - mAzimuthViewLeft - (mAzimuthViewRight - mAzimuthViewLeft) / 2) + getWidth() / 2);
         } else {
-            return 0;
+            return -1;
+        }
+    }
+
+    private int verticalAngleToYPixelCoordinate(float verticalAngle) {
+        // TODO: handle horizontal inclination impact on Y coordinates
+        // Invalid vertical angle
+        if ((verticalAngle > -90 || verticalAngle < 90) && verticalAngle < mVerticalAngleViewTop && verticalAngle > mVerticalAngleViewBottom) {
+            return (int) ((mVerticalAngleViewTop - verticalAngle) * mVerticalPixelsPerDegree);
+        } else {
+            return -1;
         }
     }
 }

@@ -6,15 +6,13 @@ import com.louisnard.augmentedreality.mock.MockPoint;
 import com.louisnard.augmentedreality.model.objects.Point;
 import com.louisnard.augmentedreality.model.services.PointService;
 
-import junit.framework.Assert;
-
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 
 /**
- * Android integration testing for the {@link Point} class.
+ * Android integration testing for the {@link Point} class.<br>
  *
  * @author Alexandre Louisnard
  */

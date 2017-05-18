@@ -85,10 +85,10 @@ public class PointService {
         }
     }
     /**
-     * Calculates the relative azimuth of each {@link Point} from {@param points} as seen from {@param originPoint} (which is for instance the user location).
-     * Returns a {@link SortedMap <>} mapping:
-     * - As key: each point azimuth, as seen from {@param originPoint}.
-     * - As value: each {@link Point} from {@param points}.
+     * Calculates the relative azimuth of each {@link Point} from {@param points} as seen from {@param originPoint} (which is for instance the user location).<br>
+     * Returns a {@link SortedMap <>} mapping:<br>
+     * - As key: each point azimuth, as seen from {@param originPoint}.<br>
+     * - As value: each {@link Point} from {@param points}.<br>
      * The {@link SortedMap<>} is sorted by key value (which means by point azimuth).
      * @param originPoint the {@link Point} from which to calculate the relative azimuths of the other points. For instance, the user location.
      * @param points the {@link List <Point>} to sort by relative azimuth.

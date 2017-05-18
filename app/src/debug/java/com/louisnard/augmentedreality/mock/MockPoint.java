@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Helper class that provides {@link Point} mock data.
+ * Helper class that provides {@link Point} mock data.<br>
  *
  * @author Alexandre Louisnard
  */
