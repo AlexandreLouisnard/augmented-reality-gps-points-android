@@ -199,6 +199,12 @@ public class PointAndroidTest {
         assertEquals(angle, a.verticalAngleTo(b), ERROR_TOLERANCE * 360);
         assertEquals(-angle, b.verticalAngleTo(a), ERROR_TOLERANCE * 360);
 
+        a = MockPoint.mDevelopersWorkplacePoint;
+        b = MockPoint.mEastOfDevelopersWorkplacePoint;
+        angle = 0f;
+        assertEquals(angle, a.verticalAngleTo(b), ERROR_TOLERANCE * 360);
+        assertEquals(-angle, b.verticalAngleTo(a), ERROR_TOLERANCE * 360);
+
         a = MockPoint.mNorthPolePoint;
         b = MockPoint.mSouthPolePoint;
         angle = 0f;

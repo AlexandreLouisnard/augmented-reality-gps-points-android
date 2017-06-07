@@ -24,9 +24,10 @@ public class Point {
     // Coordinates in degrees
     private Location mLocation;
 
+    // TODO: fix cached data (or remove it if it does not impact performance)
     // Cached azimuths and vertical angles to other points
-    private SparseArray<Float> mCachedAzimuths = new SparseArray<>();
-    private SparseArray<Float> mCachedVerticalAngles = new SparseArray<>();
+    //private SparseArray<Float> mCachedAzimuths = new SparseArray<>();
+    //private SparseArray<Float> mCachedVerticalAngles = new SparseArray<>();
 
     // Constructors
     /**
@@ -132,8 +133,8 @@ public class Point {
      */
     public void setLocation(Location location) {
         mLocation = location;
-        mCachedAzimuths.clear();
-        mCachedVerticalAngles.clear();
+        //mCachedAzimuths.clear();
+        //mCachedVerticalAngles.clear();
     }
 
     /**
@@ -142,8 +143,8 @@ public class Point {
      */
     public void setLatitude(double latitude) {
         mLocation.setLatitude(PointService.getValidLatitude(latitude));
-        mCachedAzimuths.clear();
-        mCachedVerticalAngles.clear();
+        //mCachedAzimuths.clear();
+        //mCachedVerticalAngles.clear();
     }
 
     /**
@@ -152,8 +153,8 @@ public class Point {
      */
     public void setLongitude(double longitude) {
         mLocation.setLongitude(PointService.getValidLongitude(longitude));
-        mCachedAzimuths.clear();
-        mCachedVerticalAngles.clear();
+        //mCachedAzimuths.clear();
+        //mCachedVerticalAngles.clear();
     }
 
     /**
@@ -162,7 +163,7 @@ public class Point {
      */
     public void setAltitude(int altitude) {
         mLocation.setAltitude(altitude);
-        mCachedVerticalAngles.clear();
+        //mCachedVerticalAngles.clear();
     }
 
     // Calculations
@@ -194,17 +195,17 @@ public class Point {
      */
     public float azimuthTo(Point point) {
         // Return cached azimuth to this point, if any (to improve performance)
-        if(point.getId() != 0 && mCachedAzimuths.get((int) point.getId()) != null) {
-            return mCachedAzimuths.get((int) point.getId());
+        //if(point.getId() != 0 && mCachedAzimuths.get((int) point.getId()) != null) {
+            //return mCachedAzimuths.get((int) point.getId());
         // Or calculate the azimuth to this point
-        } else {
+        //} else {
             float azimuth = getLocation().bearingTo(point.getLocation());
             if (azimuth < 0 && azimuth >= -180) {
                 azimuth = 360 + azimuth;
             }
-            mCachedAzimuths.setValueAt((int) point.getId(), azimuth);
+            //mCachedAzimuths.setValueAt((int) point.getId(), azimuth);
             return azimuth;
-        }
+        //}
     }
 
     /**
@@ -218,10 +219,10 @@ public class Point {
      */
     public float verticalAngleTo(Point point) {
         // Return cached vertical angle to this point, if any (to improve performance)
-        if(point.getId() != 0 && mCachedVerticalAngles.get((int) point.getId()) != null) {
-            return mCachedVerticalAngles.get((int) point.getId());
+        //if(point.getId() != 0 && mCachedVerticalAngles.get((int) point.getId()) != null) {
+            //return mCachedVerticalAngles.get((int) point.getId());
         // Or calculate the vertical angle to this point
-        } else {
+        //} else {
             final float distance = distanceTo(point);
             final float heightDifference = (float) (point.getLocation().getAltitude() - getLocation().getAltitude());
             float angle;
@@ -232,8 +233,8 @@ public class Point {
                         Math.atan(heightDifference / distance)
                 );
             }
-            mCachedVerticalAngles.setValueAt((int) point.getId(), angle);
+            //mCachedVerticalAngles.setValueAt((int) point.getId(), angle);
             return angle;
-        }
+        //}
     }
 }

@@ -102,10 +102,10 @@ public class PointsView extends View {
     public void updateOrientation(float azimuth, float verticalInclination, float horizontalInclination) {
         mAzimuthViewLeft = (azimuth - mHorizontalCameraAngle / 2);
         mAzimuthViewRight = (azimuth + mHorizontalCameraAngle / 2);
-        // When the device screen is held perpendicular to the ground, its camera is pointing horizontally towards the landscape:
+        // When the device screen is held perpendicular to the ground, its camera pointing horizontally towards the landscape:
         //      - The device vertical inclination -90°.
         //      - The vertical angle of the points displayed at the center of the view is 0°.
-        mVerticalAngleViewCenter = verticalInclination + 90;
+        mVerticalAngleViewCenter = -verticalInclination - 90;
         mVerticalAngleViewTop = mVerticalAngleViewCenter + mVerticalCameraAngle / 2;
         mVerticalAngleViewBottom = mVerticalAngleViewCenter - mVerticalCameraAngle / 2;
         mHorizontalInclination = horizontalInclination;
@@ -139,7 +139,7 @@ public class PointsView extends View {
                     final Drawable drawable = getResources().getDrawable(R.drawable.ic_arrow_drop_down_24dp, null);
                     drawable.setBounds(x - ARROW_SIZE/2, y - ARROW_SIZE, x + ARROW_SIZE/2, y);
                     drawable.draw(canvas);
-                    canvas.drawText(entry.getValue().getName(), x, y - ARROW_SIZE, mTextPaint);
+                    canvas.drawText(entry.getValue().getName() + "; " + mUserPoint.distanceTo(entry.getValue()) + "m; " + mUserPoint.azimuthTo(entry.getValue()) + "° " + mUserPoint.verticalAngleTo(entry.getValue()) + "°", x, y - ARROW_SIZE, mTextPaint);
                 }
             }
         }
