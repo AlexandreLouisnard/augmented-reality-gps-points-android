@@ -16,15 +16,15 @@ import static android.content.Context.SENSOR_SERVICE;
 
 
 /**
- * Compass implementation for Android providing azimuth, vertical inclination (pitch) and horizontal inclination (roll) of the device, in degrees.<br>
+ * Compass implementation for Android providing azimuth, vertical inclination (pitch) and horizontal inclination (roll) of the device, in degrees.<br/>
  *
- * Azimuth: angle of rotation about the -z axis. This value represents the angle between the device's y axis and the magnetic north pole.<br>
- * Vertical inclination = pitch: angle of rotation about the x axis. This value represents the angle between a plane parallel to the device's screen and a plane parallel to the ground.<br>
- * Horizontal inclination = roll: angle of rotation about the y axis. This value represents the angle between a plane perpendicular to the device's screen and a plane perpendicular to the ground.<br>
+ * Azimuth: angle of rotation about the -z axis. This value represents the angle between the device's y axis and the magnetic north pole.<br/>
+ * Vertical inclination = pitch: angle of rotation about the x axis. This value represents the angle between a plane parallel to the device's screen and a plane parallel to the ground.<br/>
+ * Horizontal inclination = roll: angle of rotation about the y axis. This value represents the angle between a plane perpendicular to the device's screen and a plane perpendicular to the ground.<br/>
  *
- * This implementation takes into account the orientation (portrait / landscape) of the device and corrects the values accordingly.<br>
+ * This implementation takes into account the orientation (portrait / landscape) of the device and corrects the values accordingly.<br/>
  *
- * Uses magnetic and accelerometer device sensors.<br>
+ * Uses magnetic and accelerometer device sensors.<br/>
  *
  * @author Alexandre Louisnard
  */
@@ -71,13 +71,13 @@ public class Compass implements SensorEventListener {
         /**
          * Called whenever the device orientation has changed, providing azimuth, vertical inclination and horizontal inclination values taking into account the screen orientation of the device.
          * @param azimuth the azimuth of the device, in degrees.
-         * @param verticalInclination the vertical inclination of the device, in degrees.<br>
-         *                            Equals 0 if the device top and bottom edges are on the same level.<br>
-         *                            Equals -90 if the device top edge is up and the device bottom edge is down.<br>
+         * @param verticalInclination the vertical inclination of the device, in degrees.<br/>
+         *                            Equals 0 if the device top and bottom edges are on the same level.<br/>
+         *                            Equals -90 if the device top edge is up and the device bottom edge is down.<br/>
          *                            Equals 90 if the device top edge is down and the device bottom edge is up.
-         * @param horizontalInclination the horizontal inclination of the device, in degrees.<br>
-         *                            Equals 0 if the device left and right edges are on the same level.<br>
-         *                            Equals -90 if the device right edge is up and the device left edge is down.<br>
+         * @param horizontalInclination the horizontal inclination of the device, in degrees.<br/>
+         *                            Equals 0 if the device left and right edges are on the same level.<br/>
+         *                            Equals -90 if the device right edge is up and the device left edge is down.<br/>
          *                            Equals 90 if the device right edge is down and the device left edge is up.
          */
         void onOrientationChanged(float azimuth, float verticalInclination, float horizontalInclination);

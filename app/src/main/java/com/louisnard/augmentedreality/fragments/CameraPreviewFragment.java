@@ -26,26 +26,26 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.util.Size;
-import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
-import android.view.ViewGroup;
 
 import com.louisnard.augmentedreality.BuildConfig;
-import com.louisnard.augmentedreality.R;
 
 import java.util.Collections;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 /**
- * {@link Fragment} that shows a camera preview using the camera2 API.<br>
+ * {@link Fragment} that shows a camera preview using the camera2 API.<br/>
+ *
+ * {@link CameraPreviewFragment} can be extended in order to use the camera preview as a background for some other fragment. In this case, the layout must contain a {@link TextureView} to host the camera preview.<br/>
+ *
  *
  * @author Alexandre Louisnard
  */
 
-public class CameraPreviewFragment extends Fragment {
+public abstract class CameraPreviewFragment extends Fragment {
 
     // Tag
     private static final String TAG = CameraPreviewFragment.class.getSimpleName();
@@ -73,19 +73,27 @@ public class CameraPreviewFragment extends Fragment {
         mCameraManager = (CameraManager) getContext().getSystemService(Context.CAMERA_SERVICE);
     }
 
-    @Nullable
+    /*@Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_camera_preview, container, false);
-    }
+    }*/
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // Views
-        mTextureView = (TextureView) view.findViewById(R.id.texture_view);
+        // Texture view to host the camera preview
+        mTextureView = (TextureView) view.findViewById(getTextureViewResIdForCameraPreview());
     }
+
+    /**
+     * Returns the resource id of the {@link TextureView} that will host the camera preview in the XML layout of the {@link CameraPreviewFragment}.
+     * Any class extending {@link CameraPreviewFragment} must implement this method and return the id of a {@link TextureView} from its XML layout.
+     * @return
+     */
+    protected abstract int getTextureViewResIdForCameraPreview ();
+        // return R.id.texture_view;
+
 
     @Override
     public void onResume() {
@@ -266,6 +274,7 @@ public class CameraPreviewFragment extends Fragment {
         mPreviewBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
         HandlerThread thread = new HandlerThread("CameraPreview");
         thread.start();
+        // TODO: solve bug java.lang.NullPointerException: Attempt to invoke virtual method 'android.os.Looper android.os.HandlerThread.getLooper()' on a null object reference
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
         try {
             mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, mBackgroundHandler);
@@ -298,7 +307,7 @@ public class CameraPreviewFragment extends Fragment {
     }
 
     /**
-     * Configures the necessary {@link android.graphics.Matrix} transformation to `mTextureView`.<br>
+     * Configures the necessary {@link android.graphics.Matrix} transformation to `mTextureView`.<br/>
      * This method should not to be called until the camera preview size is determined in openCamera, or until the size of `mTextureView` is fixed.
      * @param viewWidth  The width of `mTextureView`
      * @param viewHeight The height of `mTextureView`
@@ -329,11 +338,11 @@ public class CameraPreviewFragment extends Fragment {
     /**
      * Returns the camera horizontal and vertical angles of view.
      * @param cameraId the camera id.
-     * @return the angles of view such as:<br>
-     *          result[0] the horizontal angle.<br>
+     * @return the angles of view such as:<br/>
+     *          result[0] the horizontal angle.<br/>
      *          result[1] the vertical angle.
      */
-    private float[] getCameraAnglesIfView(String cameraId) {
+    protected float[] getCameraAnglesOfView(String cameraId) {
         // Use the deprecated Camera class to get the camera angles of view
         final Camera camera = Camera.open(Integer.valueOf(cameraId));
         final Camera.Parameters cameraParameters = camera.getParameters();
@@ -348,7 +357,7 @@ public class CameraPreviewFragment extends Fragment {
      * Returns the device back camera id.
      * @return the device back camera id.
      */
-    private String getBackCameraId() {
+    protected String getBackCameraId() {
         try {
             final String[] cameraIdsList = mCameraManager.getCameraIdList();
             for (String id : cameraIdsList){

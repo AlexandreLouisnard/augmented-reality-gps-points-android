@@ -8,7 +8,7 @@ import com.louisnard.augmentedreality.model.database.DbContract;
 import com.louisnard.augmentedreality.model.services.PointService;
 
 /**
- * Class that holds a point and its coordinates.<br>
+ * Class that holds a point and its coordinates.<br/>
  *
  * @author Alexandre Louisnard
  */
@@ -168,7 +168,7 @@ public class Point {
 
     // Calculations
     /**
-     * Returns the approximate distance in meters between this {@link Point} and the given {@link Point}.<br>
+     * Returns the approximate distance in meters between this {@link Point} and the given {@link Point}.<br/>
      * Distance is defined using the WGS84 ellipsoid.
      * @param point the destination {@link Point}.
      * @return the distance (in meters).
@@ -178,7 +178,7 @@ public class Point {
     }
 
     /**
-     * Returns the approximate distance in meters between this {@link Point} and the given {@link Location}.<br>
+     * Returns the approximate distance in meters between this {@link Point} and the given {@link Location}.<br/>
      * Distance is defined using the WGS84 ellipsoid.
      * @param location the destination {@link Location}.
      * @return the distance (in meters).
@@ -188,7 +188,7 @@ public class Point {
     }
 
     /**
-     * Returns the approximate azimuth in degrees East of true North when traveling along the shortest path from this {@link Point} to the given {@link Point}.<br>
+     * Returns the approximate azimuth in degrees East of true North when traveling along the shortest path from this {@link Point} to the given {@link Point}.<br/>
      * The shortest path is defined using the WGS84 ellipsoid. Locations that are (nearly) antipodal may produce meaningless results.
      * @param point the destination {@link Point}.
      * @return the azimuth to this point (in degrees), taken clockwise from north, from 0° to 360°.
@@ -209,10 +209,10 @@ public class Point {
     }
 
     /**
-     * Returns the approximate vertical angle in degrees from this {@link Point} to the given {@link Point}.<br>
-     * If the destination point has the same altitude than this point, the angle will be 0°.<br>
-     * If the destination point is higher than this point, the angle will be positive: 0° < angle < 90°.<br>
-     * If the destination point is lower than this point, the angle will be negative: -90° < angle < 0°.<br>
+     * Returns the approximate vertical angle in degrees from this {@link Point} to the given {@link Point}.<br/>
+     * If the destination point has the same altitude than this point, the angle will be 0°.<br/>
+     * If the destination point is higher than this point, the angle will be positive: 0° < angle < 90°.<br/>
+     * If the destination point is lower than this point, the angle will be negative: -90° < angle < 0°.<br/>
      * If the destination point has the same horizontal location (latitude and longitude) than this point, the angle will be 90° or -90°.
      * @param point the destination {@link Point}.
      * @return the vertical angle to this point (in degrees), from -90° to 90°.

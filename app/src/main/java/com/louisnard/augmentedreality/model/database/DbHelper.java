@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Helper class for managing the {@link SQLiteDatabase}.<br>
+ * Helper class for managing the {@link SQLiteDatabase}.<br/>
  *
  * @author Alexandre Louisnard
  */
@@ -42,7 +42,7 @@ public class DbHelper extends SQLiteOpenHelper {
             + DbContract.PointsColumns.COLUMN_ALTITUDE + " INTEGER)";
 
     /**
-     * Constructs a new instance of {@link DbHelper}.<br>
+     * Constructs a new instance of {@link DbHelper}.<br/>
      * Private constructor to prevent accidental instantiation.
      * @param applicationContext the {@link Context} to use to open or create the database.
      */
@@ -107,7 +107,7 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Returns all points from the {@link SQLiteDatabase} around the given {@link Point}.<br>
+     * Returns all points from the {@link SQLiteDatabase} around the given {@link Point}.<br/>
      * Actually, the points are located in a square of size 2x{@param distance} and centered on the given {@param point}.
      * @param location the {@link Location} around which the points have to be located.
      * @param distance the half-size of the square around the {@link Point} where the points have to be located.
@@ -183,7 +183,7 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Inserts a {@link Point} in the given {@link SQLiteDatabase}.<br>
+     * Inserts a {@link Point} in the given {@link SQLiteDatabase}.<br/>
      * The {@link SQLiteDatabase} must be closed after calling this function.
      * @param point the {@link List<Point>} to insert.
      * @param db the {@link SQLiteDatabase} to insert the point into.

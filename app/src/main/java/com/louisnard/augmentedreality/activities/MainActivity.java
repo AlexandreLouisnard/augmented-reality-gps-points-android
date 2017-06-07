@@ -5,10 +5,10 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 
 import com.louisnard.augmentedreality.R;
-import com.louisnard.augmentedreality.fragments.MainFragment;
+import com.louisnard.augmentedreality.fragments.AugmentedRealityFragment;
 
 /**
- * Main activity showing a {@link android.support.v4.app.Fragment}.<br>
+ * Main activity showing a {@link android.support.v4.app.Fragment}.<br/>
  *
  * @author Alexandre Louisnard
  */
@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         // Set fragment
         if (savedInstanceState == null) {
             final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment, new MainFragment()); // TODO: for test use, change fragment
+            transaction.replace(R.id.fragment, new AugmentedRealityFragment()); // TODO: for test use, change fragment
             transaction.commit();
         }
     }

@@ -14,7 +14,6 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -37,15 +36,15 @@ import com.louisnard.augmentedreality.views.PointsView;
 import java.util.List;
 
 /**
- * Main fragment showing the points around the user location using augmented reality.<br>
+ * Fragment showing the points around the user location using augmented reality over a camera preview.<br/>
  *
  * @author Alexandre Louisnard
  */
 
-public class MainFragment extends Fragment implements LocationListener, Compass.CompassListener {
+public class AugmentedRealityFragment extends CameraPreviewFragment implements LocationListener, Compass.CompassListener {
 
     // Tag
-    private static final String TAG = MainFragment.class.getSimpleName();
+    private static final String TAG = AugmentedRealityFragment.class.getSimpleName();
     private static final String TAG_ALERT_DIALOG_ENABLE_GPS = AlertDialogFragment.TAG + "ENABLE_GPS";
 
     // Constants
@@ -127,6 +126,11 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
     }
 
     @Override
+    protected int getTextureViewResIdForCameraPreview() {
+        return R.id.texture_view;
+    }
+
+    @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -140,7 +144,9 @@ public class MainFragment extends Fragment implements LocationListener, Compass.
         // Check GPS status
         updateGpsStatus();
 
-        // TODO: mPointsView.setCameraAngles(mHorizontalCameraAngle, mVerticalCameraAngle);
+        // Set camera angles
+        float[] cameraAnglesOfView = getCameraAnglesOfView(getBackCameraId());
+        mPointsView.setCameraAngles(cameraAnglesOfView[0], cameraAnglesOfView[1]);
     }
 
     @Override

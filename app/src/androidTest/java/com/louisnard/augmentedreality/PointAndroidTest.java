@@ -12,7 +12,7 @@ import static org.junit.Assert.assertEquals;
 
 
 /**
- * Android integration testing for the {@link Point} class.<br>
+ * Android integration testing for the {@link Point} class.<br/>
  *
  * @author Alexandre Louisnard
  */
