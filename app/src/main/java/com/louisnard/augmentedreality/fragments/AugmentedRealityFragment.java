@@ -14,6 +14,7 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -41,7 +42,7 @@ import java.util.List;
  * @author Alexandre Louisnard
  */
 
-public class AugmentedRealityFragment extends CameraPreviewFragment implements LocationListener, Compass.CompassListener {
+public class AugmentedRealityFragment extends Fragment implements LocationListener, Compass.CompassListener {
 
     // Tag
     private static final String TAG = AugmentedRealityFragment.class.getSimpleName();
@@ -125,7 +126,7 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
         return inflater.inflate(R.layout.fragment_main, container, false);
     }
 
-    @Override
+    //@Override
     protected int getTextureViewResIdForCameraPreview() {
         return R.id.texture_view;
     }
@@ -145,8 +146,10 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
         updateGpsStatus();
 
         // Set camera angles
-        float[] cameraAnglesOfView = getCameraAnglesOfView(getBackCameraId());
-        mPointsView.setCameraAngles(cameraAnglesOfView[0], cameraAnglesOfView[1]);
+        /*float[] cameraAnglesOfView = getCameraAnglesOfView(getBackCameraId());
+        if (cameraAnglesOfView != null) {
+            mPointsView.setCameraAngles(cameraAnglesOfView[0], cameraAnglesOfView[1]);
+        }*/
     }
 
     @Override

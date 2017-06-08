@@ -274,8 +274,10 @@ public abstract class CameraPreviewFragment extends Fragment {
         mPreviewBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
         HandlerThread thread = new HandlerThread("CameraPreview");
         thread.start();
+        // TODO: solve many bugs with the camera preview fragment. May be needed to do it again from scratch
         // TODO: solve bug java.lang.NullPointerException: Attempt to invoke virtual method 'android.os.Looper android.os.HandlerThread.getLooper()' on a null object reference
-        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
+        //mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
+        startBackgroundThread();
         try {
             mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, mBackgroundHandler);
         } catch (Exception e) {
@@ -344,13 +346,19 @@ public abstract class CameraPreviewFragment extends Fragment {
      */
     protected float[] getCameraAnglesOfView(String cameraId) {
         // Use the deprecated Camera class to get the camera angles of view
-        final Camera camera = Camera.open(Integer.valueOf(cameraId));
-        final Camera.Parameters cameraParameters = camera.getParameters();
-        final float horizontalCameraAngle = cameraParameters.getHorizontalViewAngle();
-        final float verticalCameraAngle = cameraParameters.getVerticalViewAngle();
-        camera.release();
-        if (BuildConfig.DEBUG) Log.d(TAG, "Back camera horizontal angle = " + horizontalCameraAngle + " and vertical angle = " + verticalCameraAngle);
-        return new float[] {horizontalCameraAngle, verticalCameraAngle};
+        try {
+            final Camera camera = Camera.open(Integer.valueOf(cameraId));
+            final Camera.Parameters cameraParameters = camera.getParameters();
+            final float horizontalCameraAngle = cameraParameters.getHorizontalViewAngle();
+            final float verticalCameraAngle = cameraParameters.getVerticalViewAngle();
+            camera.release();
+            if (BuildConfig.DEBUG)
+                Log.d(TAG, "Back camera horizontal angle = " + horizontalCameraAngle + " and vertical angle = " + verticalCameraAngle);
+            return new float[]{horizontalCameraAngle, verticalCameraAngle};
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
