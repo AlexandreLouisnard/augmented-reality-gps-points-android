@@ -7,7 +7,6 @@ import android.provider.BaseColumns;
  *
  * @author Alexandre Louisnard
  */
-
 public final class DbContract {
 
     // Private constructor to prevent accidental instantiation

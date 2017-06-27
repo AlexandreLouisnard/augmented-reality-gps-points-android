@@ -16,7 +16,6 @@ import java.util.Locale;
  *
  * @author Alexandre Louisnard
  */
-
 public class CompassView extends View {
 
     // Compass

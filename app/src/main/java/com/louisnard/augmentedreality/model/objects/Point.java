@@ -12,7 +12,6 @@ import com.louisnard.augmentedreality.model.services.PointService;
  *
  * @author Alexandre Louisnard
  */
-
 public class Point {
 
     // Point id

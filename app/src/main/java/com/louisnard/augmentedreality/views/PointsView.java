@@ -21,7 +21,6 @@ import java.util.SortedMap;
  *
  * @author Alexandre Louisnard
  */
-
 public class PointsView extends View {
 
     // Tag

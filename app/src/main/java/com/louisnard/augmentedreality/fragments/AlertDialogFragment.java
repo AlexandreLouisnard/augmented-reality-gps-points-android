@@ -15,7 +15,6 @@ import static java.lang.annotation.ElementType.PACKAGE;
  *
  * @author Alexandre Louisnard
  */
-
 public class AlertDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 
     // Tag
