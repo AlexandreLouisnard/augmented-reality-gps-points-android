@@ -17,7 +17,7 @@ import com.louisnard.augmentedreality.model.objects.Point;
 import java.util.SortedMap;
 
 /**
- * {@link View} class that places and displays points from a {@link SortedMap<Float, Point>} depending on their azimuth.<br/>
+ * Custom {@link View} that displays points from a {@link SortedMap<Float, Point>} depending on their azimuth.<br/>
  *
  * @author Alexandre Louisnard
  */
@@ -28,6 +28,7 @@ public class PointsView extends View {
     private static final String TAG = PointsView.class.getSimpleName();
 
     // Constants
+    // The size of the arrow placemark
     private static int ARROW_SIZE = 100;
 
     // Points
@@ -76,7 +77,7 @@ public class PointsView extends View {
             mHorizontalCameraAngle = horizontalCameraAngle;
             mVerticalCameraAngle = verticalCameraAngle;
         } else {
-            Log.d(TAG, "Invalid camera angles, must be: 0) < cameraAngle <= 360°");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Invalid camera angles, must be: 0) < cameraAngle <= 360°");
         }
     }
 
@@ -93,22 +94,22 @@ public class PointsView extends View {
     }
 
     /**
-     * Updates the orientation: azimuth, vertical inclination and horizontal inclination of the device.<br/>
+     * Updates the orientation: azimuth, pitch and roll of the device.<br/>
      * On them depends which points will be displayed and where will they be on the {@link PointsView};
      * @param azimuth the azimuth in degrees.
-     * @param verticalInclination the vertical inclination in degrees.
-     * @param horizontalInclination the horizontal inclination in degrees.<br/>
+     * @param pitch the vertical inclination in degrees.
+     * @param roll the horizontal inclination in degrees.<br/>
      */
-    public void updateOrientation(float azimuth, float verticalInclination, float horizontalInclination) {
+    public void updateOrientation(float azimuth, float pitch, float roll) {
         mAzimuthViewLeft = (azimuth - mHorizontalCameraAngle / 2);
         mAzimuthViewRight = (azimuth + mHorizontalCameraAngle / 2);
         // When the device screen is held perpendicular to the ground, its camera pointing horizontally towards the landscape:
-        //      - The device vertical inclination -90°.
+        //      - The device pitch = -90°.
         //      - The vertical angle of the points displayed at the center of the view is 0°.
-        mVerticalAngleViewCenter = -verticalInclination - 90;
+        mVerticalAngleViewCenter = -pitch - 90;
         mVerticalAngleViewTop = mVerticalAngleViewCenter + mVerticalCameraAngle / 2;
         mVerticalAngleViewBottom = mVerticalAngleViewCenter - mVerticalCameraAngle / 2;
-        mHorizontalInclination = horizontalInclination;
+        mHorizontalInclination = roll;
         // Update view
         if (mPoints != null) {
             invalidate();
