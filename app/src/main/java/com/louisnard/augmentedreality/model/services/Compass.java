@@ -109,7 +109,7 @@ public class Compass implements SensorEventListener {
         if (compass.hasRequiredSensors()) {
             return compass;
         } else {
-            if (BuildConfig.DEBUG) Log.d(TAG, "The device does not have the required sensors for Compass.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "The device does not have the required sensors for Compass");
             return null;
         }
     }
@@ -117,10 +117,10 @@ public class Compass implements SensorEventListener {
     // Check that the device has the required sensors
     private boolean hasRequiredSensors() {
         if (mMagnetometer == null) {
-            if (BuildConfig.DEBUG) Log.d(TAG, "No Magnetic sensor.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "No Magnetic sensor");
             return false;
         } else if (mAccelerometer == null) {
-            if (BuildConfig.DEBUG) Log.d(TAG, "No Accelerometer sensor.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "No Accelerometer sensor");
             return false;
         } else {
             return true;

@@ -86,7 +86,7 @@ public class PointsView extends View {
      * @param userPoint the current user location point, used as a reference.
      */
     public void setPoints(Point userPoint, SortedMap<Float, Point> points) {
-        if (BuildConfig.DEBUG) Log.d(TAG, "Updating points list with " + (points != null ? points.size() : 0) + " points.");
+        if (BuildConfig.DEBUG) Log.d(TAG, "Updating points list with " + (points != null ? points.size() : 0) + " points");
         mUserPoint = userPoint;
         mPoints = points;
         invalidate();

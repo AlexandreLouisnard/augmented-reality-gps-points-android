@@ -46,7 +46,11 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
 
     // Tag
     private static final String TAG = AugmentedRealityFragment.class.getSimpleName();
-    private static final String TAG_ALERT_DIALOG_ENABLE_GPS = AlertDialogFragment.TAG + "ENABLE_GPS";
+    private static final String TAG_ALERT_DIALOG_ENABLE_GPS = AlertDialogFragment.TAG + "_ENABLE_GPS";
+
+    // Request codes
+    private static final int REQUEST_PERMISSIONS = TAG.hashCode() + 1;
+    private static final int REQUEST_ENABLE_GPS = TAG.hashCode() + 2;
 
     // Constants
     // The minimum distance the user must have moved from its previous location to recalculate azimuths and distances, in meters
@@ -83,10 +87,6 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
     private TextView mVerticalInclinationTextView;
     private TextView mHorizontalInclinationTextView;
 
-    // Request codes
-    private final int REQUEST_PERMISSIONS = 1;
-    private final int REQUEST_ENABLE_GPS = 2;
-
     // Check for regular GPS updates
     // Init
     private Handler mCheckGpsHandler = new Handler();
@@ -108,7 +108,7 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA}, REQUEST_PERMISSIONS);
             }
-            if (BuildConfig.DEBUG) Log.d(TAG, "Missing permissions.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Missing permissions");
             return;
         }
 
@@ -249,12 +249,8 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case REQUEST_ENABLE_GPS:
-                if (resultCode == Activity.RESULT_OK) {
-                    startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-                }
-                break;
+        if (requestCode == REQUEST_ENABLE_GPS && resultCode == Activity.RESULT_OK) {
+            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
         }
     }
 

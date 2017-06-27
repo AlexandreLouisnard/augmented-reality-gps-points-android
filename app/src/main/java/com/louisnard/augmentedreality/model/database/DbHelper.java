@@ -196,7 +196,7 @@ public class DbHelper extends SQLiteOpenHelper {
         values.put(DbContract.PointsColumns.COLUMN_ALTITUDE, point.getAltitude());
         final long result = db.insert(DbContract.PointsColumns.TABLE_NAME, null, values);
         if (result == -1) {
-            if (BuildConfig.DEBUG) Log.d(TAG, "Error inserting the point: \"" + point.getName() + "\" into the database.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Error inserting the point: \"" + point.getName() + "\" into the database");
         }
         return result;
     }
