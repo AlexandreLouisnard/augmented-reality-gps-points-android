@@ -17,7 +17,7 @@ import com.louisnard.augmentedreality.model.objects.Point;
 import java.util.SortedMap;
 
 /**
- * Custom {@link View} that displays points from a {@link SortedMap<Float, Point>} depending on their azimuth.<br/>
+ * Custom {@link View} that displays points from a {@link SortedMap<Float, Point>} depending on their azimuth.<br>
  *
  * @author Alexandre Louisnard
  */
@@ -65,8 +65,8 @@ public class PointsView extends View {
     }
 
     /**
-     * Sets the device camera angles of view.<br/>
-     * This angle of view is used to calculate the placement of the points.<br/>
+     * Sets the device camera angles of view.<br>
+     * This angle of view is used to calculate the placement of the points.<br>
      * If not set, default values are those of a Nexus 4: horizontal angle = 54.8° and vertical angle = 42.5°.
      * @param horizontalCameraAngle the horizontal angle of view in degrees.
      * @param verticalCameraAngle the vertical angle of view in degrees.
@@ -94,11 +94,11 @@ public class PointsView extends View {
     }
 
     /**
-     * Updates the orientation: azimuth, pitch and roll of the device.<br/>
+     * Updates the orientation: azimuth, pitch and roll of the device.<br>
      * On them depends which points will be displayed and where will they be on the {@link PointsView};
      * @param azimuth the azimuth in degrees.
      * @param pitch the vertical inclination in degrees.
-     * @param roll the horizontal inclination in degrees.<br/>
+     * @param roll the horizontal inclination in degrees.<br>
      */
     public void updateOrientation(float azimuth, float pitch, float roll) {
         mAzimuthViewLeft = (azimuth - mHorizontalCameraAngle / 2);
@@ -147,7 +147,7 @@ public class PointsView extends View {
     }
 
     /**
-     * Returns the the x coordinate value in pixels where the point should be horizontally placed on the {@link PointsView} depending on its azimuth.<br/>
+     * Returns the the x coordinate value in pixels where the point should be horizontally placed on the {@link PointsView} depending on its azimuth.<br>
      * Returns -1 if the point is located outside of the {@link PointsView}.
      * @param azimuth the azimuth of the point in degrees. It should be 0 < azimuth < 360.
      * @return the x coordinate in pixels or -1 if it is located outside of the view.

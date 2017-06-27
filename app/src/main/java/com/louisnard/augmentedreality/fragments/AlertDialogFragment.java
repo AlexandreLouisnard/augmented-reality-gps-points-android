@@ -11,7 +11,7 @@ import android.support.v7.app.AlertDialog;
 import static java.lang.annotation.ElementType.PACKAGE;
 
 /**
- * {@link DialogFragment} that displays an {@link AlertDialog}.<br/>
+ * {@link DialogFragment} that displays an {@link AlertDialog}.<br>
  *
  * @author Alexandre Louisnard
  */

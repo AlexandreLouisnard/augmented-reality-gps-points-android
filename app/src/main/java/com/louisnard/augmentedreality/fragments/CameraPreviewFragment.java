@@ -37,9 +37,9 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 /**
- * {@link Fragment} that shows a camera preview using the camera2 API.<br/>
+ * {@link Fragment} that shows a camera preview using the camera2 API.<br>
  *
- * {@link CameraPreviewFragment} can be extended in order to use the camera preview as a background for some other fragment. In this case, the layout must contain a {@link TextureView} to host the camera preview.<br/>
+ * {@link CameraPreviewFragment} can be extended in order to use the camera preview as a background for some other fragment. In this case, the layout must contain a {@link TextureView} to host the camera preview.<br>
  *
  *
  * @author Alexandre Louisnard
@@ -309,7 +309,7 @@ public abstract class CameraPreviewFragment extends Fragment {
     }
 
     /**
-     * Configures the necessary {@link android.graphics.Matrix} transformation to `mTextureView`.<br/>
+     * Configures the necessary {@link android.graphics.Matrix} transformation to `mTextureView`.<br>
      * This method should not to be called until the camera preview size is determined in openCamera, or until the size of `mTextureView` is fixed.
      * @param viewWidth  The width of `mTextureView`
      * @param viewHeight The height of `mTextureView`
@@ -340,8 +340,8 @@ public abstract class CameraPreviewFragment extends Fragment {
     /**
      * Returns the camera horizontal and vertical angles of view.
      * @param cameraId the camera id.
-     * @return the angles of view such as:<br/>
-     *          result[0] the horizontal angle.<br/>
+     * @return the angles of view such as:<br>
+     *          result[0] the horizontal angle.<br>
      *          result[1] the vertical angle.
      */
     protected float[] getCameraAnglesOfView(String cameraId) {

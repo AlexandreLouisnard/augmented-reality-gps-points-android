@@ -37,7 +37,7 @@ import com.louisnard.augmentedreality.views.PointsView;
 import java.util.List;
 
 /**
- * Fragment showing the points around the user location using augmented reality over a camera preview.<br/>
+ * Fragment showing the points around the user location using augmented reality over a camera preview.<br>
  *
  * @author Alexandre Louisnard
  */
