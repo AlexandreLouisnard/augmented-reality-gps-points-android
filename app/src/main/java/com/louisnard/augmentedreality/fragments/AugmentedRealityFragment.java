@@ -112,10 +112,6 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
             return;
         }
 
-        // Location
-        mLocationManager = (LocationManager) getActivity().getSystemService(Activity.LOCATION_SERVICE);
-        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_INTERVAL_BETWEEN_LOCATION_UPDATES, 5, this);
-
         // Compass
         mCompass = Compass.newInstance(getContext(), this);
     }
@@ -127,9 +123,9 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
     }
 
     //@Override
-    protected int getTextureViewResIdForCameraPreview() {
-        return R.id.texture_view;
-    }
+    //protected int getTextureViewResIdForCameraPreview() {
+    //    return R.id.texture_view;
+    //}
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -142,9 +138,6 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
         mVerticalInclinationTextView = (TextView) view.findViewById(R.id.vertical_inclination_text_view);
         mHorizontalInclinationTextView = (TextView) view.findViewById(R.id.horizontal_inclination_text_view);
 
-        // Check GPS status
-        updateGpsStatus();
-
         // Set camera angles
         /*float[] cameraAnglesOfView = getCameraAnglesOfView(getBackCameraId());
         if (cameraAnglesOfView != null) {
@@ -155,6 +148,18 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
     @Override
     public void onResume() {
         super.onResume();
+
+        // GPS location listener
+        mLocationManager = (LocationManager) getActivity().getSystemService(Activity.LOCATION_SERVICE);
+        try {
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_INTERVAL_BETWEEN_LOCATION_UPDATES, 5, this);
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            Log.d(TAG, "Missing location permission");
+        }
+
+        // Check GPS status
+        updateGpsStatus();
 
         // Dump database for debug use only
         if (BuildConfig.DEBUG) {
@@ -175,8 +180,9 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
 
     @Override
     public void onPause() {
-        // Stop GPS updated checks
+        // Stop GPS updated checks and listener
         mCheckGpsHandler.removeCallbacks(mCheckGpsRunnable);
+        mLocationManager.removeUpdates(this);
 
         super.onPause();
 
@@ -270,29 +276,31 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
     // Check GPS status and update UI accordingly
     // Should be called whenever GPS status has changed
     private void updateGpsStatus() {
-        if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            if (BuildConfig.DEBUG) Log.d(TAG, "GPS is disabled");
-            mLastGpsLocation = null;
-            mGpsStatusTextView.setText(getString(R.string.gps_disabled));
-            mPointsView.setPoints(null, null);
-            showEnableGpsAlertDialog();
-        } else {
-            if (BuildConfig.DEBUG) Log.d(TAG, "GPS is enabled");
-            dismissEnableGpsAlertDialog();
-            if (mLastGpsLocation != null && mLastGpsLocation.getTime() >= System.currentTimeMillis() - MAX_AGE_FOR_A_LOCATION) {
-                if (BuildConfig.DEBUG) Log.d(TAG, "GPS located");
-                mGpsStatusTextView.setText(String.format(getString(R.string.gps_located), (System.currentTimeMillis() - mLastGpsLocation.getTime()) / 1000));
-            } else {
-                if (BuildConfig.DEBUG) Log.d(TAG, "GPS waiting for location");
-                mGpsStatusTextView.setText(getString(R.string.gps_waiting_for_location));
+        if (isAdded()) {
+            if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                if (BuildConfig.DEBUG) Log.d(TAG, "GPS is disabled");
+                mLastGpsLocation = null;
+                mGpsStatusTextView.setText(getString(R.string.gps_disabled));
                 mPointsView.setPoints(null, null);
+                showEnableGpsAlertDialog();
+            } else {
+                if (BuildConfig.DEBUG) Log.d(TAG, "GPS is enabled");
+                dismissEnableGpsAlertDialog();
+                if (mLastGpsLocation != null && mLastGpsLocation.getTime() >= System.currentTimeMillis() - MAX_AGE_FOR_A_LOCATION) {
+                    if (BuildConfig.DEBUG) Log.d(TAG, "GPS located");
+                    mGpsStatusTextView.setText(String.format(getString(R.string.gps_located), (System.currentTimeMillis() - mLastGpsLocation.getTime()) / 1000));
+                } else {
+                    if (BuildConfig.DEBUG) Log.d(TAG, "GPS waiting for location");
+                    mGpsStatusTextView.setText(getString(R.string.gps_waiting_for_location));
+                    mPointsView.setPoints(null, null);
+                }
             }
         }
     }
 
     // Display an alert dialog asking the user to enable the GPS
     private void showEnableGpsAlertDialog() {
-        if (getFragmentManager().findFragmentByTag(TAG_ALERT_DIALOG_ENABLE_GPS) == null) {
+        if (isAdded() && getFragmentManager().findFragmentByTag(TAG_ALERT_DIALOG_ENABLE_GPS) == null) {
             final AlertDialogFragment alertDialogFragment = AlertDialogFragment.newInstance(R.string.gps, R.string.gps_disabled_alert_dialog_message, android.R.string.ok, android.R.string.cancel);
             alertDialogFragment.setTargetFragment(this, REQUEST_ENABLE_GPS);
             final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
@@ -303,7 +311,7 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
 
     // Dismiss the alert dialog asking the user to enable the GPS
     private void dismissEnableGpsAlertDialog() {
-        if (getFragmentManager().findFragmentByTag(TAG_ALERT_DIALOG_ENABLE_GPS) != null) {
+        if (isAdded() && getFragmentManager().findFragmentByTag(TAG_ALERT_DIALOG_ENABLE_GPS) != null) {
             ((AlertDialogFragment) getFragmentManager().findFragmentByTag(TAG_ALERT_DIALOG_ENABLE_GPS)).dismissAllowingStateLoss();
         }
     }

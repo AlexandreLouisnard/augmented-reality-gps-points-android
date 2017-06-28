@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         // Set fragment
         if (savedInstanceState == null) {
             final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment, new CameraPreviewFragment());
+            transaction.replace(R.id.fragment, new AugmentedRealityFragment());
             transaction.commit();
         }
     }

@@ -51,10 +51,10 @@ import java.util.concurrent.TimeUnit;
 public class CameraPreviewFragment extends Fragment {
 
     // Tag
-    private static final String TAG = AugmentedRealityFragment.class.getSimpleName();
+    private static final String TAG = CameraPreviewFragment.class.getSimpleName();
 
     // Request codes
-    private static final int REQUEST_CAMERA_PERMISSION = 101;
+    private static final int REQUEST_CAMERA_PERMISSION = TAG.hashCode() + 1;
 
     // Threads
     // An additional thread for running tasks that shouldn't block the UI
@@ -91,6 +91,7 @@ public class CameraPreviewFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+
         startBackgroundThread();
 
         // When the screen is turned off and turned back on, the SurfaceTexture is already available, and "onSurfaceTextureAvailable" will not be called
@@ -297,7 +298,7 @@ public class CameraPreviewFragment extends Fragment {
             mPreviewCaptureRequestBuilder.addTarget(surface);
 
             // Here, we create a CameraCaptureSession for camera preview.
-            mCameraDevice.createCaptureSession(Arrays.asList(surface), mCameraCaptureSessionStateListener, null);
+            mCameraDevice.createCaptureSession(Collections.singletonList(surface), mCameraCaptureSessionStateListener, null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }

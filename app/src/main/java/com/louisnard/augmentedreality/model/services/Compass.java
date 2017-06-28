@@ -35,8 +35,8 @@ public class Compass implements SensorEventListener {
     private static final String TAG = Compass.class.getSimpleName();
 
     // Constants
-    private static final float GEOMAGNETIC_SMOOTHING_FACTOR = 0.4f;
-    private static final float GRAVITY_SMOOTHING_FACTOR = 0.1f;
+    private static final float GEOMAGNETIC_SMOOTHING_FACTOR = 0.6f;
+    private static final float GRAVITY_SMOOTHING_FACTOR = 0.3f;
 
     // Context
     private final Context mContext;
