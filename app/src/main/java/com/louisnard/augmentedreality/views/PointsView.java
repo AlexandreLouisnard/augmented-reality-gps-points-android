@@ -1,6 +1,7 @@
 package com.louisnard.augmentedreality.views;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -28,7 +29,7 @@ public class PointsView extends View {
 
     // Constants
     // The size of the arrow placemark
-    private static int ARROW_SIZE = 100;
+    private static final int ARROW_SIZE = 100;
 
     // Points
     private SortedMap<Float, Point> mPoints;
@@ -37,10 +38,9 @@ public class PointsView extends View {
     // Device and view orientations
     private float mAzimuthViewLeft;
     private float mAzimuthViewRight;
-    private float mVerticalAngleViewCenter;
     private float mVerticalAngleViewTop;
     private float mVerticalAngleViewBottom;
-    private float mHorizontalInclination;
+    private float mRoll;
 
     // Screen to camera angles ratios: the number of pixels on the screen associated to a one degree variation on the camera
     // Default values are those of a Nexus 4 camera
@@ -50,7 +50,7 @@ public class PointsView extends View {
     private float mVerticalPixelsPerDegree;
 
     // Drawing
-    private Paint mTextPaint;
+    private final Paint mTextPaint;
 
     public PointsView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -105,10 +105,10 @@ public class PointsView extends View {
         // When the device screen is held perpendicular to the ground, its camera pointing horizontally towards the landscape:
         //      - The device pitch = -90°.
         //      - The vertical angle of the points displayed at the center of the view is 0°.
-        mVerticalAngleViewCenter = -pitch - 90;
-        mVerticalAngleViewTop = mVerticalAngleViewCenter + mVerticalCameraAngle / 2;
-        mVerticalAngleViewBottom = mVerticalAngleViewCenter - mVerticalCameraAngle / 2;
-        mHorizontalInclination = roll;
+        float verticalAngleViewCenter = -pitch - 90;
+        mVerticalAngleViewTop = verticalAngleViewCenter + mVerticalCameraAngle / 2;
+        mVerticalAngleViewBottom = verticalAngleViewCenter - mVerticalCameraAngle / 2;
+        mRoll = roll;
         // Update view
         if (mPoints != null) {
             invalidate();

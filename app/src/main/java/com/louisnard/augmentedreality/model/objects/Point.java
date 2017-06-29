@@ -2,7 +2,6 @@ package com.louisnard.augmentedreality.model.objects;
 
 import android.database.Cursor;
 import android.location.Location;
-import android.util.SparseArray;
 
 import com.louisnard.augmentedreality.model.database.DbContract;
 import com.louisnard.augmentedreality.model.services.PointService;

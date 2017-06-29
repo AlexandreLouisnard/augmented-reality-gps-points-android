@@ -1,13 +1,17 @@
 package com.louisnard.augmentedreality.views;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.View;
+
+import com.louisnard.augmentedreality.R;
 
 import java.util.Locale;
 
@@ -22,7 +26,7 @@ public class CompassView extends View {
     private float mAzimuthDegrees = 0;
 
     // Drawing
-    private Paint mPaint;
+    private final Paint mPaint;
     private Bitmap mCachedBitmap;
     private int mX;
     private int mY;
@@ -30,12 +34,21 @@ public class CompassView extends View {
 
     public CompassView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        // Get attributes
+        TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.CompassView, 0, 0);
+        int color;
+        try {
+            color = a.getColor(R.styleable.CompassView_color, Color.BLACK);
+        } finally {
+            a.recycle();
+        }
+
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
         mPaint.setStrokeWidth(2);
         mPaint.setTextSize(25);
         mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setColor(Color.BLACK);
+        mPaint.setColor(color);
     }
 
     @Override

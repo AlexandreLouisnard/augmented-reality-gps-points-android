@@ -88,8 +88,8 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
 
     // Check for regular GPS updates
     // Init
-    private Handler mCheckGpsHandler = new Handler();
-    private Runnable mCheckGpsRunnable = new Runnable() {
+    private final Handler mCheckGpsHandler = new Handler();
+    private final Runnable mCheckGpsRunnable = new Runnable() {
         @Override
         public void run() {
             updateGpsStatus();
@@ -129,8 +129,8 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
         mCompassView = (CompassView) view.findViewById(R.id.compass_view);
         mPointsView = (PointsView) view.findViewById(R.id.points_view);
         mGpsStatusTextView = (TextView) view.findViewById(R.id.gps_status_text_view);
-        mVerticalInclinationTextView = (TextView) view.findViewById(R.id.vertical_inclination_text_view);
-        mHorizontalInclinationTextView = (TextView) view.findViewById(R.id.horizontal_inclination_text_view);
+        mVerticalInclinationTextView = (TextView) view.findViewById(R.id.pitch_text_view);
+        mHorizontalInclinationTextView = (TextView) view.findViewById(R.id.roll_text_view);
 
         // Set camera angles
         float[] cameraAnglesOfView = getCameraAnglesOfView(getBackCameraId());
@@ -194,8 +194,8 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
     @Override
     public void onOrientationChanged(float azimuth, float verticalInclination, float horizontalInclination) {
         mCompassView.updateAzimuth(azimuth);
-        mVerticalInclinationTextView.setText(String.format(getString(R.string.vertical_inclination), verticalInclination));
-        mHorizontalInclinationTextView.setText(String.format(getString(R.string.horizontal_inclination), horizontalInclination));
+        mVerticalInclinationTextView.setText(String.format(getString(R.string.pitch), verticalInclination));
+        mHorizontalInclinationTextView.setText(String.format(getString(R.string.roll), horizontalInclination));
         mPointsView.updateOrientation(azimuth, verticalInclination, horizontalInclination);
     }
 

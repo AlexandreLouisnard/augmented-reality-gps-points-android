@@ -16,7 +16,7 @@ public class PointService {
 
     // Constants
     // The Earth mean radius in meters
-    public static double EARTH_RADIUS = 6371000;
+    public static final double EARTH_RADIUS = 6371000;
 
     // Static helper methods
     /**

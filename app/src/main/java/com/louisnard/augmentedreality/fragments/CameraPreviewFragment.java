@@ -37,7 +37,6 @@ import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.R;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -73,7 +72,7 @@ public abstract class CameraPreviewFragment extends Fragment {
     private CameraCaptureSession mCameraCaptureSession;
     private Size mPreviewSize;
     private CaptureRequest.Builder mPreviewCaptureRequestBuilder;
-    private Semaphore mCameraOpenCloseLock = new Semaphore(1);
+    private final Semaphore mCameraOpenCloseLock = new Semaphore(1);
 
     // Max preview size that is guaranteed by Camera2 API
     private static final int MAX_PREVIEW_WIDTH = 1920;
@@ -185,7 +184,7 @@ public abstract class CameraPreviewFragment extends Fragment {
     };
 
     // Camera capture session state listener
-    private CameraCaptureSession.StateCallback mCameraCaptureSessionStateListener = new CameraCaptureSession.StateCallback() {
+    private final CameraCaptureSession.StateCallback mCameraCaptureSessionStateListener = new CameraCaptureSession.StateCallback() {
         @Override
         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
             // The camera is already closed
@@ -213,7 +212,7 @@ public abstract class CameraPreviewFragment extends Fragment {
     };
 
     // Camera capture session capture listener
-    private CameraCaptureSession.CaptureCallback mCameraCaptureSessionCaptureCallback = new CameraCaptureSession.CaptureCallback() {
+    private final CameraCaptureSession.CaptureCallback mCameraCaptureSessionCaptureCallback = new CameraCaptureSession.CaptureCallback() {
         @Override
         public void onCaptureProgressed(@NonNull CameraCaptureSession session,
                                         @NonNull CaptureRequest request,
@@ -354,9 +353,13 @@ public abstract class CameraPreviewFragment extends Fragment {
             int maxPreviewHeight = displaySize.y;
 
             if (swappedDimensions) {
+                //noinspection SuspiciousNameCombination
                 rotatedPreviewWidth = height;
+                //noinspection SuspiciousNameCombination
                 rotatedPreviewHeight = width;
+                //noinspection SuspiciousNameCombination
                 maxPreviewWidth = displaySize.y;
+                //noinspection SuspiciousNameCombination
                 maxPreviewHeight = displaySize.x;
             }
 
@@ -370,7 +373,7 @@ public abstract class CameraPreviewFragment extends Fragment {
 
             // Danger, W.R.! Attempting to use too large a preview size could  exceed the camera bus' bandwidth limitation, resulting in gorgeous previews but the storage of garbage capture data.
             mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class), rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth, maxPreviewHeight);
-        } catch (CameraAccessException e) {
+        } catch (CameraAccessException | NullPointerException e) {
             e.printStackTrace();
         }
     }
@@ -497,7 +500,7 @@ public abstract class CameraPreviewFragment extends Fragment {
                     return id;
                 }
             }
-        } catch (CameraAccessException e) {
+        } catch (CameraAccessException | NullPointerException e) {
             if (BuildConfig.DEBUG) Log.d(TAG, "Your device does not have a camera.");
             e.printStackTrace();
         }
