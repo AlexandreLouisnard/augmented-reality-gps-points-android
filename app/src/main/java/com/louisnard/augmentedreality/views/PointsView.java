@@ -134,12 +134,11 @@ public class PointsView extends View {
             for (SortedMap.Entry<Float, Point> entry : mPoints.entrySet()) {
                 final int x = azimuthToXPixelCoordinate(entry.getKey());
                 final int y = verticalAngleToYPixelCoordinate(mUserPoint.verticalAngleTo(entry.getValue()));
-                // TODO: check that vertical placement of points is correct
                 if (x != -1 && y != -1) {
                     final Drawable drawable = getResources().getDrawable(R.drawable.ic_arrow_drop_down_24dp, null);
                     drawable.setBounds(x - ARROW_SIZE/2, y - ARROW_SIZE, x + ARROW_SIZE/2, y);
                     drawable.draw(canvas);
-                    canvas.drawText(entry.getValue().getName() + "; " + mUserPoint.distanceTo(entry.getValue()) + "m; " + mUserPoint.azimuthTo(entry.getValue()) + "° " + mUserPoint.verticalAngleTo(entry.getValue()) + "°", x, y - ARROW_SIZE, mTextPaint);
+                    canvas.drawText(entry.getValue().getName() + "; " + mUserPoint.distanceTo(entry.getValue()) + "m", x, y - ARROW_SIZE, mTextPaint);
                 }
             }
         }

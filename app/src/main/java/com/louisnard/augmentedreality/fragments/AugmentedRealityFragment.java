@@ -14,7 +14,6 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -42,7 +41,7 @@ import java.util.List;
  *
  * @author Alexandre Louisnard
  */
-public class AugmentedRealityFragment extends Fragment implements LocationListener, Compass.CompassListener {
+public class AugmentedRealityFragment extends CameraPreviewFragment implements LocationListener, Compass.CompassListener {
 
     // Tag
     private static final String TAG = AugmentedRealityFragment.class.getSimpleName();
@@ -119,13 +118,8 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_main, container, false);
+        return inflater.inflate(R.layout.fragment_augmented_reality, container, false);
     }
-
-    //@Override
-    //protected int getTextureViewResIdForCameraPreview() {
-    //    return R.id.texture_view;
-    //}
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -139,10 +133,10 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
         mHorizontalInclinationTextView = (TextView) view.findViewById(R.id.horizontal_inclination_text_view);
 
         // Set camera angles
-        /*float[] cameraAnglesOfView = getCameraAnglesOfView(getBackCameraId());
+        float[] cameraAnglesOfView = getCameraAnglesOfView(getBackCameraId());
         if (cameraAnglesOfView != null) {
             mPointsView.setCameraAngles(cameraAnglesOfView[0], cameraAnglesOfView[1]);
-        }*/
+        }
     }
 
     @Override
@@ -188,6 +182,12 @@ public class AugmentedRealityFragment extends Fragment implements LocationListen
 
         // Stop compass
         if (mCompass != null) mCompass.stop();
+    }
+
+    // CameraPreviewFragment implementation
+    @Override
+    protected int getTextureViewResIdForCameraPreview() {
+        return R.id.texture_view;
     }
 
     // CompassListener interface
