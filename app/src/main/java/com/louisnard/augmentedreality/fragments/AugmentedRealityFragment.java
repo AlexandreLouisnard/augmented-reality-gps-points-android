@@ -48,8 +48,8 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
     private static final String TAG_ALERT_DIALOG_ENABLE_GPS = AlertDialogFragment.TAG + "_ENABLE_GPS";
 
     // Request codes
-    private static final int REQUEST_PERMISSIONS = TAG.hashCode() + 1;
-    private static final int REQUEST_ENABLE_GPS = TAG.hashCode() + 2;
+    private static final int REQUEST_PERMISSIONS = TAG.hashCode() & 0xfffffff + 1;
+    private static final int REQUEST_ENABLE_GPS = TAG.hashCode() & 0xfffffff + 2;
 
     // Constants
     // The minimum distance the user must have moved from its previous location to recalculate azimuths and distances, in meters

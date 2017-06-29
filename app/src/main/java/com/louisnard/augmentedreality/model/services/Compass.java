@@ -52,6 +52,7 @@ public class Compass implements SensorEventListener {
     private boolean mUseRotationVectorSensor = false;
 
     // Orientation
+    @SuppressWarnings("FieldCanBeLocal")
     private float mAzimuthDegrees;
     private float mPitchDegrees;
     private float mRollDegrees;
@@ -225,9 +226,11 @@ public class Compass implements SensorEventListener {
                     mRollDegrees = mRollDegrees > 0 ? 180 - mRollDegrees : -180 - mRollDegrees;
                 }
             } else if (screenRotation == Surface.ROTATION_90) {
+                mAzimuthDegrees += 90;
                 mPitchDegrees = (float) Math.toDegrees(orientation[2]);
                 mRollDegrees = (float) -Math.toDegrees(orientation[1]);
             } else if (screenRotation == Surface.ROTATION_180) {
+                mAzimuthDegrees += 180;
                 mPitchDegrees = (float) -Math.toDegrees(orientation[1]);
                 mRollDegrees = (float) -Math.toDegrees(orientation[2]);
                 if (mRollDegrees >= 90 || mRollDegrees <= -90) {
@@ -236,6 +239,7 @@ public class Compass implements SensorEventListener {
                     mRollDegrees = mRollDegrees > 0 ? 180 - mRollDegrees : -180 - mRollDegrees;
                 }
             } else if (screenRotation == Surface.ROTATION_270) {
+                mAzimuthDegrees += 270;
                 mPitchDegrees = (float) -Math.toDegrees(orientation[2]);
                 mRollDegrees = (float) Math.toDegrees(orientation[1]);
             }

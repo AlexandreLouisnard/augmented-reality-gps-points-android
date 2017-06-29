@@ -55,7 +55,7 @@ public abstract class CameraPreviewFragment extends Fragment {
     private static final String TAG = CameraPreviewFragment.class.getSimpleName();
 
     // Request codes
-    private static final int REQUEST_CAMERA_PERMISSION = TAG.hashCode() + 1;
+    private static final int REQUEST_CAMERA_PERMISSION = TAG.hashCode() & 0xfffffff + 1;
 
     // Threads
     // An additional thread for running tasks that shouldn't block the UI
