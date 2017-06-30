@@ -151,19 +151,16 @@ public class PointsView extends View {
      *     4) (maxX,maxY) is bottom right corner.<br>
      * @param azimuth the azimuth of the point, in degrees from 0° to 360°.
      * @param verticalAngle the vertical angle of the point, in degrees from -90° to 90°.
-     * @return an {@link int[]} such as:<br>
+     * @return the {@link int[]} coordinates such as:<br>
      *     result[0] the x coordinate in pixels.<br>
      *     result[y] the y coordinate in pixels.
      */
     private int[] getPixelCoordinates(float azimuth, float verticalAngle) {
-        // TODO: handle horizontal inclination impact on X coordinates
-        // Pour une rotation autour du centre du repère :
-        // x' = x cos a - y sin a
-        // y' = y cos a + x sin a
-
         // Coordinates in pixels
         int x;
         int y;
+
+        // TODO: not working correctly in portrait mode. Points seem to be following the screen. Maybe getHeight and getWidth problem ??
 
         // Invalid azimuth
         if (azimuth < 0 || azimuth >= 360) {
@@ -193,6 +190,38 @@ public class PointsView extends View {
         // y coordinates calculation from vertical angle
         y = (int) ((mVerticalAngleViewTop - verticalAngle) * mVerticalPixelsPerDegree);
 
-        return new int[] {x, y};
+        return applyRollOnPixelCoordinates(x, y);
+    }
+
+    /**
+     * Calculates the pixel coordinates variation taking into account the roll of the device.
+     * @param x the original x coordinate in pixels.
+     * @param y the original y coordinate in pixels.
+     * @return the {@link int[]} coordinates after applying the roll such as:<br>
+     *     result[0] the x coordinate in pixels.<br>
+     *     result[y] the y coordinate in pixels.
+     */
+    private int[] applyRollOnPixelCoordinates(int x, int y) {
+        // Center the frame in the middle of the screen (to apply the rotation from the center)
+        x -= getWidth() / 2;
+        y -= getHeight() / 2;
+
+        // Apply rotation to the coordinates with the device roll value
+        // Rotation around the center of the frame:
+        // x' = x cos a - y sin a
+        // y' = y cos a + x sin a
+        double rollRadians = Math.toRadians(mRoll);
+        int x2 = (int) (x * Math.cos(-rollRadians) - y * Math.sin(-rollRadians));
+        int y2 = (int) (y * Math.cos(rollRadians) - x * Math.sin(rollRadians));
+
+        // Center the frame in the top left corner (Android pixels coordinate system)
+        x2 += getWidth() / 2;
+        y2 += getHeight() / 2;
+
+        if (x2 < 0 || y2 < 0 || x2 > getWidth() || y2 > getHeight()) {
+            return null;
+        } else {
+            return new int[]{x2, y2};
+        }
     }
 }
