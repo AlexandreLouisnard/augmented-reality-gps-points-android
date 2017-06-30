@@ -1,7 +1,6 @@
 package com.louisnard.augmentedreality.views;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -132,50 +131,68 @@ public class PointsView extends View {
         // Draw visible points on canvas
         if (mUserPoint != null && mPoints != null && !mPoints.isEmpty()) {
             for (SortedMap.Entry<Float, Point> entry : mPoints.entrySet()) {
-                final int x = azimuthToXPixelCoordinate(entry.getKey());
-                final int y = verticalAngleToYPixelCoordinate(mUserPoint.verticalAngleTo(entry.getValue()));
-                if (x != -1 && y != -1) {
+                final int[] xy = getPixelCoordinates(entry.getKey(), mUserPoint.verticalAngleTo(entry.getValue()));
+                if (xy != null) {
                     final Drawable drawable = getResources().getDrawable(R.drawable.ic_arrow_drop_down_24dp, null);
-                    drawable.setBounds(x - ARROW_SIZE/2, y - ARROW_SIZE, x + ARROW_SIZE/2, y);
+                    drawable.setBounds(xy[0] - ARROW_SIZE/2, xy[1] - ARROW_SIZE, xy[0] + ARROW_SIZE/2, xy[1]);
                     drawable.draw(canvas);
-                    canvas.drawText(entry.getValue().getName() + "; " + mUserPoint.distanceTo(entry.getValue()) + "m", x, y - ARROW_SIZE, mTextPaint);
+                    canvas.drawText(entry.getValue().getName() + "; " + mUserPoint.distanceTo(entry.getValue()) + "m", xy[0], xy[1] - ARROW_SIZE, mTextPaint);
                 }
             }
         }
     }
 
     /**
-     * Returns the the x coordinate value in pixels where the point should be horizontally placed on the {@link PointsView} depending on its azimuth.<br>
-     * Returns -1 if the point is located outside of the {@link PointsView}.
-     * @param azimuth the azimuth of the point in degrees. It should be 0 < azimuth < 360.
-     * @return the x coordinate in pixels or -1 if it is located outside of the view.
+     * Returns the x and y coordinates in pixels for a given azimuth and vertical angle of a point.<br>
+     * Coordinates are following the usual Android system:<br>
+     *     1) (0,0) is top left corner.<br>
+     *     2) (maxX,0) is top right corner.<br>
+     *     3) (0,maxY) is bottom left corner.<br>
+     *     4) (maxX,maxY) is bottom right corner.<br>
+     * @param azimuth the azimuth of the point, in degrees from 0° to 360°.
+     * @param verticalAngle the vertical angle of the point, in degrees from -90° to 90°.
+     * @return an {@link int[]} such as:<br>
+     *     result[0] the x coordinate in pixels.<br>
+     *     result[y] the y coordinate in pixels.
      */
-    private int azimuthToXPixelCoordinate(float azimuth) {
+    private int[] getPixelCoordinates(float azimuth, float verticalAngle) {
         // TODO: handle horizontal inclination impact on X coordinates
+        // Pour une rotation autour du centre du repère :
+        // x' = x cos a - y sin a
+        // y' = y cos a + x sin a
+
+        // Coordinates in pixels
+        int x;
+        int y;
+
         // Invalid azimuth
         if (azimuth < 0 || azimuth >= 360) {
-            return -1;
+            return null;
+        }
+
+        // Invalid vertical angle or not visible
+        if (verticalAngle < -90 || verticalAngle > 90 || verticalAngle > mVerticalAngleViewTop || verticalAngle < mVerticalAngleViewBottom) {
+            return null;
+        }
+
+        // x coordinates calculation from azimuth
         // Normal case : 0 < azimuthFrom < azimuth < azimuthTo < 360
-        } else if (azimuth > mAzimuthViewLeft && azimuth < mAzimuthViewRight) {
-            return (int) (mHorizontalPixelsPerDegree * (azimuth - mAzimuthViewLeft - (mAzimuthViewRight - mAzimuthViewLeft) / 2) + getWidth() / 2);
+        if (azimuth > mAzimuthViewLeft && azimuth < mAzimuthViewRight) {
+            x = (int) (mHorizontalPixelsPerDegree * (azimuth - mAzimuthViewLeft - (mAzimuthViewRight - mAzimuthViewLeft) / 2) + getWidth() / 2);
         // Special case 1 : azimuthFrom < 0 < azimuth < azimuthTo < 360
         } else if (mAzimuthViewLeft < 0 && azimuth > 360 + mAzimuthViewLeft) {
-            return (int) (mHorizontalPixelsPerDegree * (azimuth - 360 - mAzimuthViewLeft - (mAzimuthViewRight - mAzimuthViewLeft) / 2) + getWidth() / 2);
+            x = (int) (mHorizontalPixelsPerDegree * (azimuth - 360 - mAzimuthViewLeft - (mAzimuthViewRight - mAzimuthViewLeft) / 2) + getWidth() / 2);
         // Special case 2 : 0 < azimuthFrom < azimuth < 360 < azimuthTo
         } else if (mAzimuthViewRight > 360 && azimuth < mAzimuthViewRight - 360) {
-            return (int) (mHorizontalPixelsPerDegree * (azimuth + 360 - mAzimuthViewLeft - (mAzimuthViewRight - mAzimuthViewLeft) / 2) + getWidth() / 2);
+            x = (int) (mHorizontalPixelsPerDegree * (azimuth + 360 - mAzimuthViewLeft - (mAzimuthViewRight - mAzimuthViewLeft) / 2) + getWidth() / 2);
+        // Azimuth not visible
         } else {
-            return -1;
+            return null;
         }
-    }
 
-    private int verticalAngleToYPixelCoordinate(float verticalAngle) {
-        // TODO: handle horizontal inclination impact on Y coordinates
-        // Invalid vertical angle
-        if ((verticalAngle > -90 || verticalAngle < 90) && verticalAngle < mVerticalAngleViewTop && verticalAngle > mVerticalAngleViewBottom) {
-            return (int) ((mVerticalAngleViewTop - verticalAngle) * mVerticalPixelsPerDegree);
-        } else {
-            return -1;
-        }
+        // y coordinates calculation from vertical angle
+        y = (int) ((mVerticalAngleViewTop - verticalAngle) * mVerticalPixelsPerDegree);
+
+        return new int[] {x, y};
     }
 }
