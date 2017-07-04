@@ -108,6 +108,8 @@ public class PointsView extends View {
         mVerticalAngleViewTop = verticalAngleViewCenter + mVerticalCameraAngle / 2;
         mVerticalAngleViewBottom = verticalAngleViewCenter - mVerticalCameraAngle / 2;
         mRoll = roll;
+
+        Log.d(TAG, "Azimuth limits (left-center-right) = " + mAzimuthViewLeft + " - " + azimuth + " - " + mAzimuthViewRight);
         // Update view
         if (mPoints != null) {
             invalidate();
@@ -136,7 +138,7 @@ public class PointsView extends View {
                     final Drawable drawable = getResources().getDrawable(R.drawable.ic_arrow_drop_down_24dp, null);
                     drawable.setBounds(xy[0] - ARROW_SIZE/2, xy[1] - ARROW_SIZE, xy[0] + ARROW_SIZE/2, xy[1]);
                     drawable.draw(canvas);
-                    canvas.drawText(entry.getValue().getName() + "; " + mUserPoint.distanceTo(entry.getValue()) + "m", xy[0], xy[1] - ARROW_SIZE, mTextPaint);
+                    canvas.drawText(entry.getValue().getName() + "; " + entry.getKey() + "°; " + mUserPoint.distanceTo(entry.getValue()) + "m", xy[0], xy[1] - ARROW_SIZE, mTextPaint);
                 }
             }
         }
@@ -160,7 +162,7 @@ public class PointsView extends View {
         int x;
         int y;
 
-        // TODO: not working correctly in portrait mode. Points seem to be following the screen. Maybe getHeight and getWidth problem ??
+        // TODO: not working correctly in portrait mode.
 
         // Invalid azimuth
         if (azimuth < 0 || azimuth >= 360) {

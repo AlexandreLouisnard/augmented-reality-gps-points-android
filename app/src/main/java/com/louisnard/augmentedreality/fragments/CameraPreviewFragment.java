@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -32,6 +33,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.R;
@@ -73,6 +75,7 @@ public abstract class CameraPreviewFragment extends Fragment {
     private Size mPreviewSize;
     private CaptureRequest.Builder mPreviewCaptureRequestBuilder;
     private final Semaphore mCameraOpenCloseLock = new Semaphore(1);
+    private float[] mCameraHardwareAnglesOfView;
 
     // Max preview size that is guaranteed by Camera2 API
     private static final int MAX_PREVIEW_WIDTH = 1920;
@@ -85,6 +88,21 @@ public abstract class CameraPreviewFragment extends Fragment {
      * @return the resource id of the {@link TextureView} on which the camera preview will be displayed.
      */
     protected abstract int getTextureViewResIdForCameraPreview();
+
+    /**
+     * Callback method invoked when the camera preview is ready and displayed in the {@link TextureView}.
+     * @param cameraAnglesOfView the camera preview angles of view such as:<br/>
+     *          result[0] the horizontal angle.<br/>
+     *          result[1] the vertical angle.
+     */
+    protected abstract void onCameraPreviewReady(float[] cameraAnglesOfView);
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mCameraId = getBackCameraId();
+        mCameraHardwareAnglesOfView = getCameraAnglesOfView();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -203,6 +221,8 @@ public abstract class CameraPreviewFragment extends Fragment {
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }
+            Log.d(TAG, "mCameraCaptureSessionStateListener onConfigured(): Camera Preview ready, calling onCameraPreviewReady()");
+            onCameraPreviewReady(calculateCameraAnglesOfViewForThisPreview(mCameraHardwareAnglesOfView[0], mCameraHardwareAnglesOfView[1]));
         }
 
         @Override
@@ -320,7 +340,6 @@ public abstract class CameraPreviewFragment extends Fragment {
         Activity activity = getActivity();
         CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
         try {
-            mCameraId = getBackCameraId();
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(mCameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
@@ -468,21 +487,57 @@ public abstract class CameraPreviewFragment extends Fragment {
     }
 
     /**
-     * Returns the camera horizontal and vertical angles of view.
-     * @param cameraId the camera id.
+     * Returns the camera horizontal and vertical angles of view as given by the {@link Camera} API.<br>
+     * Does not take into account the target view aspect ratio (16/9, 4/3...) nor the device screen orientation.
      * @return the angles of view such as:<br/>
      *          result[0] the horizontal angle.<br/>
      *          result[1] the vertical angle.
      */
     @Deprecated
-    protected float[] getCameraAnglesOfView(String cameraId) {
+    private float[] getCameraAnglesOfView() {
         // Use the deprecated Camera class to get the camera angles of view
-        final Camera camera = Camera.open(Integer.valueOf(cameraId));
+        final Camera camera = Camera.open(Integer.valueOf(mCameraId));
         final Camera.Parameters cameraParameters = camera.getParameters();
-        final float horizontalCameraAngle = cameraParameters.getHorizontalViewAngle();
-        final float verticalCameraAngle = cameraParameters.getVerticalViewAngle();
+        // cameraParameters.getHorizontalViewAngle() is the widest angle
+        float horizontalCameraAngle = cameraParameters.getHorizontalViewAngle();
+        // cameraParameters.getVerticalViewAngle() the smaller one
+        float verticalCameraAngle = cameraParameters.getVerticalViewAngle();
         camera.release();
-        if (BuildConfig.DEBUG) Log.d(TAG, "Back camera horizontal angle = " + horizontalCameraAngle + " and vertical angle = " + verticalCameraAngle);
+        if (BuildConfig.DEBUG) Log.d(TAG, "Camera hardware horizontal angle = " + horizontalCameraAngle + " and vertical angle = " + verticalCameraAngle);
+        return new float[] {horizontalCameraAngle, verticalCameraAngle};
+    }
+
+    /**
+     * Returns the camera angle of view for this specific camera preview taking into account:<br>
+     *     The target {@link TextureView} aspect ratio.<br>
+     *     The screen orientation.
+     * @param horizontalCameraAngle
+     * @param verticalCameraAngle
+     * @return the angles of view such as:<br/>
+     *          result[0] the horizontal angle.<br/>
+     *          result[1] the vertical angle.
+     */
+    private float[] calculateCameraAnglesOfViewForThisPreview(float horizontalCameraAngle, float verticalCameraAngle) {
+        // Invert values in portrait mode
+        final int screenRotation = (((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay()).getRotation();
+        if (screenRotation == Surface.ROTATION_0 || screenRotation == Surface.ROTATION_180) {
+            final float tmp = horizontalCameraAngle;
+            horizontalCameraAngle = verticalCameraAngle;
+            verticalCameraAngle = tmp;
+        }
+
+        // Adapt to the TextureView ratio
+        // TODO: correct this calculation, should be sinusoidal
+        if (mTextureView.getWidth() != 0 && mTextureView.getHeight() != 0) {
+            final float ratio = (float) mTextureView.getWidth() / mTextureView.getHeight();
+            if (horizontalCameraAngle / verticalCameraAngle < ratio) {
+                verticalCameraAngle = horizontalCameraAngle / ratio;
+            } else if (horizontalCameraAngle / verticalCameraAngle > ratio) {
+                horizontalCameraAngle = verticalCameraAngle * ratio;
+            }
+        }
+
+        if (BuildConfig.DEBUG) Log.d(TAG, "Camera preview horizontal angle = " + horizontalCameraAngle + " and vertical angle = " + verticalCameraAngle);
         return new float[] {horizontalCameraAngle, verticalCameraAngle};
     }
 
