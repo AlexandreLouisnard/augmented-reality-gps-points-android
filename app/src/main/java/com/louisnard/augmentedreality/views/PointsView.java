@@ -66,16 +66,19 @@ public class PointsView extends View {
      * Sets the device camera angles of view.<br>
      * This angle of view is used to calculate the placement of the points.<br>
      * If not set, default values are those of a Nexus 4: horizontal angle = 54.8° and vertical angle = 42.5°.
-     * @param horizontalCameraAngle the horizontal angle of view in degrees.
-     * @param verticalCameraAngle the vertical angle of view in degrees.
+     * @param horizontalCameraAngle the horizontal angle of view in degrees such as 0° < angle < 180°.
+     * @param verticalCameraAngle the vertical angle of view in degrees such as 0° < angle < 180°.
      */
     public void setCameraAngles(float horizontalCameraAngle, float verticalCameraAngle) {
         // Camera angles
-        if (horizontalCameraAngle > 0 && horizontalCameraAngle <= 360 && verticalCameraAngle > 0 && verticalCameraAngle <= 360) {
+        if (horizontalCameraAngle > 0 && horizontalCameraAngle < 180 && verticalCameraAngle > 0 && verticalCameraAngle < 180) {
             mHorizontalCameraAngle = horizontalCameraAngle;
             mVerticalCameraAngle = verticalCameraAngle;
+            // Force recalculation of pixels per degree in onDraw()
+            mHorizontalPixelsPerDegree = 0;
+            mVerticalPixelsPerDegree = 0;
         } else {
-            if (BuildConfig.DEBUG) Log.d(TAG, "Invalid camera angles, must be: 0) < cameraAngle <= 360°");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Invalid camera angles, must be: 0° < angle < 180°");
         }
     }
 
@@ -161,8 +164,6 @@ public class PointsView extends View {
         // Coordinates in pixels
         int x;
         int y;
-
-        // TODO: not working correctly in portrait mode.
 
         // Invalid azimuth
         if (azimuth < 0 || azimuth >= 360) {

@@ -91,11 +91,11 @@ public abstract class CameraPreviewFragment extends Fragment {
 
     /**
      * Callback method invoked when the camera preview is ready and displayed in the {@link TextureView}.
-     * @param cameraAnglesOfView the camera preview angles of view such as:<br/>
+     * @param cameraPreviewAnglesOfView the camera preview angles of view such as:<br/>
      *          result[0] the horizontal angle.<br/>
      *          result[1] the vertical angle.
      */
-    protected abstract void onCameraPreviewReady(float[] cameraAnglesOfView);
+    protected abstract void onCameraPreviewReady(float[] cameraPreviewAnglesOfView);
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -222,7 +222,10 @@ public abstract class CameraPreviewFragment extends Fragment {
                 e.printStackTrace();
             }
             Log.d(TAG, "mCameraCaptureSessionStateListener onConfigured(): Camera Preview ready, calling onCameraPreviewReady()");
-            onCameraPreviewReady(calculateCameraAnglesOfViewForThisPreview(mCameraHardwareAnglesOfView[0], mCameraHardwareAnglesOfView[1]));
+            final int screenRotation = (((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay()).getRotation();
+            final boolean isPortraitMode = (screenRotation == Surface.ROTATION_0 || screenRotation == Surface.ROTATION_180);
+            final float[] cameraPreviewAnglesOfView = adaptCameraAnglesOfViewToASupport(mCameraHardwareAnglesOfView[0], mCameraHardwareAnglesOfView[1], mTextureView.getWidth(), mTextureView.getHeight(), isPortraitMode);
+            onCameraPreviewReady(cameraPreviewAnglesOfView);
         }
 
         @Override
@@ -489,9 +492,9 @@ public abstract class CameraPreviewFragment extends Fragment {
     /**
      * Returns the camera horizontal and vertical angles of view as given by the {@link Camera} API.<br>
      * Does not take into account the target view aspect ratio (16/9, 4/3...) nor the device screen orientation.
-     * @return the angles of view such as:<br/>
-     *          result[0] the horizontal angle.<br/>
-     *          result[1] the vertical angle.
+     * @return the angles of view such as:<br>
+     *          result[0] the horizontal angle (the widest).<br>
+     *          result[1] the vertical angle (the narrowest).
      */
     @Deprecated
     private float[] getCameraAnglesOfView() {
@@ -500,7 +503,7 @@ public abstract class CameraPreviewFragment extends Fragment {
         final Camera.Parameters cameraParameters = camera.getParameters();
         // cameraParameters.getHorizontalViewAngle() is the widest angle
         float horizontalCameraAngle = cameraParameters.getHorizontalViewAngle();
-        // cameraParameters.getVerticalViewAngle() the smaller one
+        // cameraParameters.getVerticalViewAngle() the narrowest angle
         float verticalCameraAngle = cameraParameters.getVerticalViewAngle();
         camera.release();
         if (BuildConfig.DEBUG) Log.d(TAG, "Camera hardware horizontal angle = " + horizontalCameraAngle + " and vertical angle = " + verticalCameraAngle);
@@ -510,30 +513,31 @@ public abstract class CameraPreviewFragment extends Fragment {
     /**
      * Returns the camera angle of view for this specific camera preview taking into account:<br>
      *     The target {@link TextureView} aspect ratio.<br>
-     *     The screen orientation.
-     * @param horizontalCameraAngle
-     * @param verticalCameraAngle
+     *     The device screen orientation.
+     * @param horizontalCameraAngle the horizontal camera angle of view (the widest) as given by the {@link Camera} API.
+     * @param verticalCameraAngle the vertical camera angle of view (the narrowest) as given by the {@link Camera} API.
+     * @param targetWidth the target support {@link TextureView} width.
+     * @param targetHeight the target support {@link TextureView} height.
+     * @param isPortraitMode <b>true</b> if the device is currently in portrait mode. <b>false</b> otherwise
      * @return the angles of view such as:<br/>
      *          result[0] the horizontal angle.<br/>
      *          result[1] the vertical angle.
      */
-    private float[] calculateCameraAnglesOfViewForThisPreview(float horizontalCameraAngle, float verticalCameraAngle) {
+    private float[] adaptCameraAnglesOfViewToASupport(float horizontalCameraAngle, float verticalCameraAngle, int targetWidth, int targetHeight, boolean isPortraitMode) {
         // Invert values in portrait mode
-        final int screenRotation = (((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay()).getRotation();
-        if (screenRotation == Surface.ROTATION_0 || screenRotation == Surface.ROTATION_180) {
+        if (isPortraitMode) {
             final float tmp = horizontalCameraAngle;
             horizontalCameraAngle = verticalCameraAngle;
             verticalCameraAngle = tmp;
         }
 
         // Adapt to the TextureView ratio
-        // TODO: correct this calculation, should be sinusoidal
-        if (mTextureView.getWidth() != 0 && mTextureView.getHeight() != 0) {
-            final float ratio = (float) mTextureView.getWidth() / mTextureView.getHeight();
+        if (targetWidth != 0 && targetHeight != 0) {
+            final float ratio = (float) targetWidth / targetHeight;
             if (horizontalCameraAngle / verticalCameraAngle < ratio) {
-                verticalCameraAngle = horizontalCameraAngle / ratio;
+                verticalCameraAngle = (float) Math.toDegrees(2 * Math.atan(Math.tan(Math.toRadians(horizontalCameraAngle/2)) / ratio));
             } else if (horizontalCameraAngle / verticalCameraAngle > ratio) {
-                horizontalCameraAngle = verticalCameraAngle * ratio;
+                horizontalCameraAngle = (float) Math.toDegrees(2 * Math.atan(Math.tan(Math.toRadians(verticalCameraAngle/2)) * ratio));
             }
         }
 
