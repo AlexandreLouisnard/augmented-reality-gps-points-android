@@ -13,33 +13,49 @@ import com.louisnard.augmentedreality.model.services.PointService;
  */
 public class Point {
 
-    // Point id
+    // Attributes
     private long mId;
-
-    // Name
     private String mName;
-
-    // Coordinates in degrees
+    private String mDescription;
     private Location mLocation;
-
-    // TODO: fix cached data (or remove it if it does not impact performance)
-    // Cached azimuths and vertical angles to other points
-    //private SparseArray<Float> mCachedAzimuths = new SparseArray<>();
-    //private SparseArray<Float> mCachedVerticalAngles = new SparseArray<>();
 
     // Constructors
     /**
      * Constructs a new instance of {@link Point} from coordinates.
+     * @param name the name.
+     * @param description the description.
      * @param longitude the longitude in degrees.
      * @param altitude the altitude in meters.
-     * @param name the name.
      */
-    public Point(String name, double latitude, double longitude, int altitude) {
+    public Point(String name, String description, double latitude, double longitude, int altitude) {
         mName = name;
+        mDescription = description;
         mLocation = new Location("");
         mLocation.setLatitude(PointService.getValidLatitude(latitude));
         mLocation.setLongitude(PointService.getValidLongitude(longitude));
         mLocation.setAltitude(altitude);
+    }
+
+    /**
+     * Constructs a new instance of {@link Point} from coordinates.
+     * @param name the name.
+     * @param longitude the longitude in degrees.
+     * @param altitude the altitude in meters.
+     */
+    public Point(String name, double latitude, double longitude, int altitude) {
+        this(name, "", latitude, longitude, altitude);
+    }
+
+    /**
+     * Constructs a new instance of {@link Point} from a {@link Location} object.
+     * @param name the name.
+     * @param description the description.
+     * @param location the {@link Location}.
+     */
+    public Point(String name, String description, Location location) {
+        mName = name;
+        mDescription = description;
+        mLocation = location;
     }
 
     /**
@@ -48,8 +64,7 @@ public class Point {
      * @param location the {@link Location}.
      */
     public Point(String name, Location location) {
-        mName = name;
-        mLocation = location;
+        this(name, "", location);
     }
 
     /**
@@ -60,6 +75,7 @@ public class Point {
         if (cursor != null) {
             mId = cursor.getLong((cursor.getColumnIndex(DbContract.PointsColumns._ID)));
             mName = cursor.getString(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_NAME));
+            mDescription = cursor.getString(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_DESCRIPTION));
             mLocation = new Location("");
             mLocation.setLatitude(cursor.getDouble(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_LATITUDE)));
             mLocation.setLongitude(cursor.getDouble(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_LONGITUDE)));
@@ -82,6 +98,14 @@ public class Point {
      */
     public String getName() {
         return mName;
+    }
+
+    /**
+     * Gets this {@link Point} description.
+     * @return the description.
+     */
+    public String getDescription() {
+        return mDescription;
     }
 
     /**
@@ -126,13 +150,19 @@ public class Point {
     }
 
     /**
+     * Sets this {@link Point} description.
+     * @param description the description.
+     */
+    public void setDescription(String description) {
+        mDescription = description;
+    }
+
+    /**
      * Sets this {@link Point} {@link Location}.
      * @param location the {@link Location}.
      */
     public void setLocation(Location location) {
         mLocation = location;
-        //mCachedAzimuths.clear();
-        //mCachedVerticalAngles.clear();
     }
 
     /**
@@ -141,8 +171,6 @@ public class Point {
      */
     public void setLatitude(double latitude) {
         mLocation.setLatitude(PointService.getValidLatitude(latitude));
-        //mCachedAzimuths.clear();
-        //mCachedVerticalAngles.clear();
     }
 
     /**
@@ -151,8 +179,6 @@ public class Point {
      */
     public void setLongitude(double longitude) {
         mLocation.setLongitude(PointService.getValidLongitude(longitude));
-        //mCachedAzimuths.clear();
-        //mCachedVerticalAngles.clear();
     }
 
     /**
@@ -161,7 +187,6 @@ public class Point {
      */
     public void setAltitude(int altitude) {
         mLocation.setAltitude(altitude);
-        //mCachedVerticalAngles.clear();
     }
 
     // Calculations
@@ -192,18 +217,11 @@ public class Point {
      * @return the azimuth to this point (in degrees), taken clockwise from north, from 0° to 360°.
      */
     public float azimuthTo(Point point) {
-        // Return cached azimuth to this point, if any (to improve performance)
-        //if(point.getId() != 0 && mCachedAzimuths.get((int) point.getId()) != null) {
-            //return mCachedAzimuths.get((int) point.getId());
-        // Or calculate the azimuth to this point
-        //} else {
-            float azimuth = getLocation().bearingTo(point.getLocation());
-            if (azimuth < 0 && azimuth >= -180) {
-                azimuth = 360 + azimuth;
-            }
-            //mCachedAzimuths.setValueAt((int) point.getId(), azimuth);
-            return azimuth;
-        //}
+        float azimuth = getLocation().bearingTo(point.getLocation());
+        if (azimuth < 0 && azimuth >= -180) {
+            azimuth += 360;
+        }
+        return azimuth;
     }
 
     /**
@@ -216,23 +234,16 @@ public class Point {
      * @return the vertical angle to this point (in degrees), from -90° to 90°.
      */
     public float verticalAngleTo(Point point) {
-        // Return cached vertical angle to this point, if any (to improve performance)
-        //if(point.getId() != 0 && mCachedVerticalAngles.get((int) point.getId()) != null) {
-            //return mCachedVerticalAngles.get((int) point.getId());
-        // Or calculate the vertical angle to this point
-        //} else {
-            final float distance = distanceTo(point);
-            final float heightDifference = (float) (point.getLocation().getAltitude() - getLocation().getAltitude());
-            float angle;
-            if (distance == 0) {
-                angle = heightDifference >= 0 ? 90f : -90f;
-            } else {
-                angle = (float) Math.toDegrees(
-                        Math.atan(heightDifference / distance)
-                );
-            }
-            //mCachedVerticalAngles.setValueAt((int) point.getId(), angle);
-            return angle;
-        //}
+        final float distance = distanceTo(point);
+        final float heightDifference = (float) (point.getLocation().getAltitude() - getLocation().getAltitude());
+        float angle;
+        if (distance == 0) {
+            angle = heightDifference >= 0 ? 90f : -90f;
+        } else {
+            angle = (float) Math.toDegrees(
+                    Math.atan(heightDifference / distance)
+            );
+        }
+        return angle;
     }
 }

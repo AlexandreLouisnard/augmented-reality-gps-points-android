@@ -36,6 +36,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private static final String SQL_CREATE_TABLE_POINTS = "CREATE TABLE " + DbContract.PointsColumns.TABLE_NAME
             + " (" + DbContract.PointsColumns._ID + " INTEGER PRIMARY KEY,"
             + DbContract.PointsColumns.COLUMN_NAME + " TEXT,"
+            + DbContract.PointsColumns.COLUMN_DESCRIPTION + " TEXT,"
             + DbContract.PointsColumns.COLUMN_LATITUDE + " REAL,"
             + DbContract.PointsColumns.COLUMN_LONGITUDE + " REAL,"
             + DbContract.PointsColumns.COLUMN_ALTITUDE + " INTEGER)";
@@ -191,6 +192,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private long insertPoint(Point point, SQLiteDatabase db) {
         final ContentValues values = new ContentValues();
         values.put(DbContract.PointsColumns.COLUMN_NAME, point.getName());
+        values.put(DbContract.PointsColumns.COLUMN_DESCRIPTION, point.getDescription());
         values.put(DbContract.PointsColumns.COLUMN_LATITUDE, point.getLatitude());
         values.put(DbContract.PointsColumns.COLUMN_LONGITUDE, point.getLongitude());
         values.put(DbContract.PointsColumns.COLUMN_ALTITUDE, point.getAltitude());

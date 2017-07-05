@@ -33,20 +33,23 @@ public class PointAndroidTest {
         location.setLatitude(45.1916626);
         location.setLongitude(5.7385538);
         location.setAltitude(220);
-        a = new Point("Developer's home :-)", location);
+        a = new Point("Developer's home :-)", "The developer's home.", location);
         assertEquals("Developer's home :-)", a.getName());
+        assertEquals("The developer's home.", a.getDescription());
         assertEquals(45.1916626, a.getLatitude(), 0);
         assertEquals(5.7385538, a.getLongitude(), 0);
         assertEquals(220, a.getAltitude(), 0);
         a.setName("Mont Rachais");
+        a.setDescription("Le Mont Rachais aux portes de Grenoble.");
         a.setLatitude(45.2417);
         a.setLongitude(5.7436);
         a.setAltitude(1046);
         assertEquals("Mont Rachais", a.getName());
+        assertEquals("Le Mont Rachais aux portes de Grenoble.", a.getDescription());
         assertEquals(45.2417, a.getLatitude(), 0);
         assertEquals(5.7436, a.getLongitude(), 0);
         assertEquals(1046, a.getAltitude(), 0);
-        a = new Point("Nulle part", -89, -179, 12);
+        a = new Point("Nulle part", "Ce point n'a aucun sens.", -89, -179, 12);
         assertEquals("Nulle part", a.getName());
         assertEquals(-89, a.getLatitude(), 0);
         assertEquals(-179, a.getLongitude(), 0);
@@ -125,13 +128,13 @@ public class PointAndroidTest {
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
 
         a = MockPoint.mNorthPolePoint;
-        b = new Point("1° latitude away from North Pole", 89, 0, 0);
+        b = new Point("1° latitude away from North Pole", "Just a 1 degree latitude away from the North Pole.", 89, 0, 0);
         distance = 111100; // 111 km
         assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
 
         a = MockPoint.mNorthPolePoint;
-        b = new Point("100m away and 100m above from North Pole", 90 - PointService.metersToDegrees(100), 0, 100);
+        b = new Point("100m away and 100m above from North Pole", "Just a point 100m away and 100m above the North Pole.", 90 - PointService.metersToDegrees(100), 0, 100);
         distance = 100;
         assertEquals(distance, a.distanceTo(b), ERROR_TOLERANCE * distance);
         assertEquals(a.distanceTo(b), b.distanceTo(a), 0);
