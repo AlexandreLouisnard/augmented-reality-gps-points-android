@@ -1,5 +1,9 @@
 package com.louisnard.augmentedreality.model.services;
 
+import android.util.Log;
+
+import com.louisnard.augmentedreality.BuildConfig;
+import com.louisnard.augmentedreality.fragments.AugmentedRealityFragment;
 import com.louisnard.augmentedreality.model.objects.Point;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -20,6 +24,9 @@ import java.util.TreeMap;
  */
 
 public class PointService {
+
+    // Tag
+    private static final String TAG = PointService.class.getSimpleName();
 
     // Constants
     // The Earth mean radius in meters
@@ -123,20 +130,33 @@ public class PointService {
             factory.setNamespaceAware(true);
             final XmlPullParser xpp = factory.newPullParser();
             xpp.setInput(inputStream, null);
+
             int eventType = xpp.getEventType();
+
+            if (eventType != XmlPullParser.START_DOCUMENT) {
+                if (BuildConfig.DEBUG) Log.d(TAG, "Invalid GPX file");
+                return null;
+            }
+            eventType = xpp.next();
+            if (eventType != XmlPullParser.START_TAG || xpp.getName().compareTo("gpx") != 0) { // TODO: make case insensitive
+                if (BuildConfig.DEBUG) Log.d(TAG, "Invalid GPX file");
+                return null;
+            }
+            eventType = xpp.next();
+
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 if(eventType == XmlPullParser.START_DOCUMENT) {
-                    System.out.println("Start document");
+                    Log.d(TAG, "Start document");
                 } else if(eventType == XmlPullParser.START_TAG) {
-                    System.out.println("Start tag "+xpp.getName());
+                    Log.d(TAG, "Start tag "+xpp.getName());
                 } else if(eventType == XmlPullParser.END_TAG) {
-                    System.out.println("End tag "+xpp.getName());
+                    Log.d(TAG, "End tag "+xpp.getName());
                 } else if(eventType == XmlPullParser.TEXT) {
-                    System.out.println("Text "+xpp.getText());
+                    Log.d(TAG, "Text "+xpp.getText());
                 }
                 eventType = xpp.next();
             }
-            System.out.println("End document");
+            Log.d(TAG, "End document");
         } catch (XmlPullParserException | IOException e) {
             e.printStackTrace();
         }

@@ -105,6 +105,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
                     && mimeType.compareTo("application/gpx") != 0
                     && mimeType.compareTo("application/octet-stream") != 0
                     && mimeType.compareTo("text/plain") != 0) {
+                if (BuildConfig.DEBUG) Log.d(TAG, "Invalid GPX file");
                 AlertDialogFragment.newInstance(R.string.error, R.string.settings_not_a_gpx_file_alert_dialog_message).show(getFragmentManager(), AlertDialogFragment.TAG);
                 return;
             }
