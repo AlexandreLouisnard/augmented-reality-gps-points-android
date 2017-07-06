@@ -17,10 +17,15 @@ import android.widget.Button;
 
 import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.R;
+import com.louisnard.augmentedreality.model.objects.Point;
+import com.louisnard.augmentedreality.model.services.PointService;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Fragment showing the points around the user location using augmented reality over a camera preview.<br>
@@ -74,7 +79,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_STORAGE_READ_WRITE_PERMISSIONS);
             } else {
-                pickGpxFile();
+                pickFile();
             }
         }
     }
@@ -82,7 +87,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_STORAGE_READ_WRITE_PERMISSIONS && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-            pickGpxFile();
+            pickFile();
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
@@ -91,28 +96,46 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (REQUEST_PICK_GPX_FILE == requestCode && resultCode == Activity.RESULT_OK) {
-            Uri uri = data.getData();
-            String gpxContent = readTextFromUri(uri);
-            Log.d("TEST", "GPX Content: " + gpxContent);
-        }
-        else {
+            final Uri uri = data.getData();
+            final String mimeType = getContext().getContentResolver().getType(uri);
+            if (BuildConfig.DEBUG) Log.d(TAG, "Picked file of type: " + mimeType + " and URI: " + uri.getPath());
+
+            // Check that the file is a GPX file
+            if (mimeType.compareTo("application/gpx+xml") != 0
+                    && mimeType.compareTo("application/gpx") != 0
+                    && mimeType.compareTo("application/octet-stream") != 0
+                    && mimeType.compareTo("text/plain") != 0) {
+                AlertDialogFragment.newInstance(R.string.error, R.string.settings_not_a_gpx_file_alert_dialog_message).show(getFragmentManager(), AlertDialogFragment.TAG);
+                return;
+            }
+
+            // Parse
+            List<Point> mPointsList = new ArrayList<Point>();
+            try {
+                final InputStream inputStream = getContext().getContentResolver().openInputStream(uri);
+                mPointsList = PointService.parseGpx(inputStream);
+                // TODO: parse gpx
+                // TODO: add points to DB (asynchronously ?)
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
-    private void pickGpxFile() {
+    private void pickFile() {
         final Intent chooseFile;
         final Intent intent;
         chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
         chooseFile.addCategory(Intent.CATEGORY_OPENABLE);
-        chooseFile.setType("application/gpx");
+        chooseFile.setType("*/*");
         intent = Intent.createChooser(chooseFile, getString(R.string.settings_pick_a_gpx_file));
         startActivityForResult(intent, REQUEST_PICK_GPX_FILE);
     }
 
 
-    private String readTextFromUri(Uri uri) {
-        if (BuildConfig.DEBUG) Log.d(TAG, "readTextFromUri() for URI: " + uri.getPath());
+    /*private String readTextFromUri(Uri uri) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try {
             InputStream inputStream = getContext().getContentResolver().openInputStream(uri);
@@ -126,5 +149,5 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
             e.printStackTrace();
         }
         return byteArrayOutputStream.toString();
-    }
+    }*/
 }

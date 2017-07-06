@@ -149,8 +149,8 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
         try {
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_INTERVAL_BETWEEN_LOCATION_UPDATES, 5, this);
         } catch (SecurityException e) {
+            if (BuildConfig.DEBUG) Log.d(TAG, "Missing location permission");
             e.printStackTrace();
-            Log.d(TAG, "Missing location permission");
         }
 
         // Check GPS status

@@ -2,6 +2,13 @@ package com.louisnard.augmentedreality.model.services;
 
 import com.louisnard.augmentedreality.model.objects.Point;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -102,4 +109,37 @@ public class PointService {
         return pointsSortedMap;
     }
 
+    /**
+     * Parses a GPX file {@link InputStream} and returns the {@link List<Point>} that it contains.
+     * @param inputStream the {@link InputStream} of the GPX file.
+     * @return the {@link List<Point>} contained in the GPX file.
+     */
+    public static List<Point> parseGpx(InputStream inputStream) {
+        // TODO: check that the GPX file is valid
+        // TODO: parse GPX file
+        List<Point> pointsList = new ArrayList<>();
+        try {
+            final XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+            factory.setNamespaceAware(true);
+            final XmlPullParser xpp = factory.newPullParser();
+            xpp.setInput(inputStream, null);
+            int eventType = xpp.getEventType();
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                if(eventType == XmlPullParser.START_DOCUMENT) {
+                    System.out.println("Start document");
+                } else if(eventType == XmlPullParser.START_TAG) {
+                    System.out.println("Start tag "+xpp.getName());
+                } else if(eventType == XmlPullParser.END_TAG) {
+                    System.out.println("End tag "+xpp.getName());
+                } else if(eventType == XmlPullParser.TEXT) {
+                    System.out.println("Text "+xpp.getText());
+                }
+                eventType = xpp.next();
+            }
+            System.out.println("End document");
+        } catch (XmlPullParserException | IOException e) {
+            e.printStackTrace();
+        }
+        return pointsList;
+    }
 }

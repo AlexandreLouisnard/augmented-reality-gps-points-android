@@ -100,6 +100,15 @@ public abstract class CameraPreviewFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+            }
+            if (BuildConfig.DEBUG) Log.d(TAG, "Missing camera permission");
+            return;
+        }
+
         mCameraId = getBackCameraId();
         mCameraHardwareAnglesOfView = getCameraAnglesOfView();
     }
@@ -221,7 +230,7 @@ public abstract class CameraPreviewFragment extends Fragment {
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }
-            Log.d(TAG, "mCameraCaptureSessionStateListener onConfigured(): Camera Preview ready, calling onCameraPreviewReady()");
+            if (BuildConfig.DEBUG) Log.d(TAG, "mCameraCaptureSessionStateListener onConfigured(): Camera Preview ready, calling onCameraPreviewReady()");
             final int screenRotation = (((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay()).getRotation();
             final boolean isPortraitMode = (screenRotation == Surface.ROTATION_0 || screenRotation == Surface.ROTATION_180);
             final float[] cameraPreviewAnglesOfView = adaptCameraAnglesOfViewToASupport(mCameraHardwareAnglesOfView[0], mCameraHardwareAnglesOfView[1], mTextureView.getWidth(), mTextureView.getHeight(), isPortraitMode);
@@ -251,13 +260,6 @@ public abstract class CameraPreviewFragment extends Fragment {
 
     // Open the camera
     private void openCamera(int width, int height) {
-        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
-            }
-            if (BuildConfig.DEBUG) Log.d(TAG, "Missing camera permission");
-            return;
-        }
         setUpCameraOutputs(width, height);
         configureTransform(width, height);
         CameraManager cameraManager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
@@ -266,7 +268,7 @@ public abstract class CameraPreviewFragment extends Fragment {
                 throw new RuntimeException("Time out waiting to lock camera opening");
             }
             cameraManager.openCamera(mCameraId, mCameraStateListener, mBackgroundHandler);
-        } catch (CameraAccessException e) {
+        } catch (CameraAccessException | SecurityException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while trying to lock camera opening", e);
@@ -363,7 +365,7 @@ public abstract class CameraPreviewFragment extends Fragment {
                     }
                     break;
                 default:
-                    Log.d(TAG, "Display rotation is invalid: " + screenRotation);
+                    if (BuildConfig.DEBUG) Log.d(TAG, "Display rotation is invalid: " + screenRotation);
             }
 
             Point displaySize = new Point();
@@ -439,10 +441,10 @@ public abstract class CameraPreviewFragment extends Fragment {
         } else if (notBigEnough.size() > 0) {
             optimalSize = Collections.max(notBigEnough, new CompareSizesByArea());
         } else {
-            Log.d(TAG, "Couldn't find any suitable camera preview size");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Couldn't find any suitable camera preview size");
             optimalSize = choices[0];
         }
-        Log.d(TAG, "Using camera preview size: " + optimalSize.toString() + "(ratio:" + (float) optimalSize.getWidth() / optimalSize.getHeight() + ")" + "for texture view size: " + textureViewWidth + "x" + textureViewHeight + "(ratio:" + textureViewRatio + ")");
+        if (BuildConfig.DEBUG) Log.d(TAG, "Using camera preview size: " + optimalSize.toString() + "(ratio:" + (float) optimalSize.getWidth() / optimalSize.getHeight() + ")" + "for texture view size: " + textureViewWidth + "x" + textureViewHeight + "(ratio:" + textureViewRatio + ")");
         return optimalSize;
     }
 

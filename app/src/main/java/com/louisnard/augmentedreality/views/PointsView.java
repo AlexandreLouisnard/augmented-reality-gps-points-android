@@ -112,7 +112,6 @@ public class PointsView extends View {
         mVerticalAngleViewBottom = verticalAngleViewCenter - mVerticalCameraAngle / 2;
         mRoll = roll;
 
-        Log.d(TAG, "Azimuth limits (left-center-right) = " + mAzimuthViewLeft + " - " + azimuth + " - " + mAzimuthViewRight);
         // Update view
         if (mPoints != null) {
             invalidate();
@@ -127,10 +126,10 @@ public class PointsView extends View {
         if(mHorizontalPixelsPerDegree == 0 || mVerticalPixelsPerDegree == 0) {
             mHorizontalPixelsPerDegree = getWidth() / mHorizontalCameraAngle;
             mVerticalPixelsPerDegree = getHeight() / mVerticalCameraAngle;
-            if (BuildConfig.DEBUG)
+            if (BuildConfig.DEBUG) {
                 Log.d(TAG, "View size in pixels = " + getWidth() + "x" + getHeight());
-            if (BuildConfig.DEBUG)
                 Log.d(TAG, "Screen pixels associated to 1° camera angle variation: horizontal=" + mHorizontalPixelsPerDegree + "px/° & vertical=" + mVerticalPixelsPerDegree + "px/°");
+            }
         }
 
         // Draw visible points on canvas
