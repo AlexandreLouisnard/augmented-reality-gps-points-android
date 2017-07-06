@@ -1,5 +1,8 @@
 <resources>
+
+    <!-- Global data -->
     <string name="app_name">Augmented Reality GPS Points</string>
+    <string name="augmented_reality_activity">@string/app_name</string>
 
     <!-- GPS Location -->
     <string name="gps">GPS</string>

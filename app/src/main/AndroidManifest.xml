@@ -18,16 +18,22 @@
         android:theme="@style/Theme.AppCompat.NoActionBar"
         android:allowBackup="false"
         android:supportsRtl="false">
+
         <activity android:name=".activities.AugmentedRealityActivity"
+            android:label="@string/augmented_reality_activity"
             android:screenOrientation="fullSensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity android:name=".activities.SettingsActivity"
+            android:label="@string/settings_activity"
+            android:parentActivityName=".activities.AugmentedRealityActivity"
             android:screenOrientation="fullSensor">
         </activity>
+
     </application>
 
 </manifest>
