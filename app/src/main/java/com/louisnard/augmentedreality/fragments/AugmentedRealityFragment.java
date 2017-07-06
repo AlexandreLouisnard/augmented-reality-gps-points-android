@@ -20,11 +20,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.DevUtils;
 import com.louisnard.augmentedreality.R;
+import com.louisnard.augmentedreality.activities.SettingsActivity;
 import com.louisnard.augmentedreality.mock.MockPoint;
 import com.louisnard.augmentedreality.model.database.DbContract;
 import com.louisnard.augmentedreality.model.database.DbHelper;
@@ -41,7 +43,7 @@ import java.util.List;
  *
  * @author Alexandre Louisnard
  */
-public class AugmentedRealityFragment extends CameraPreviewFragment implements LocationListener, Compass.CompassListener {
+public class AugmentedRealityFragment extends CameraPreviewFragment implements LocationListener, Compass.CompassListener, View.OnClickListener {
 
     // Tag
     private static final String TAG = AugmentedRealityFragment.class.getSimpleName();
@@ -80,8 +82,9 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
     private List<Point> mPoints;
 
     // Views
-    private CompassView mCompassView;
     private PointsView mPointsView;
+    private ImageButton mSettingsButton;
+    private CompassView mCompassView;
     private TextView mGpsStatusTextView;
     private TextView mVerticalInclinationTextView;
     private TextView mHorizontalInclinationTextView;
@@ -126,11 +129,15 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
         super.onViewCreated(view, savedInstanceState);
 
         // Views
-        mCompassView = (CompassView) view.findViewById(R.id.compass_view);
         mPointsView = (PointsView) view.findViewById(R.id.points_view);
+        mSettingsButton = (ImageButton) view.findViewById(R.id.settings_btn);
+        mCompassView = (CompassView) view.findViewById(R.id.compass_view);
         mGpsStatusTextView = (TextView) view.findViewById(R.id.gps_status_text_view);
         mVerticalInclinationTextView = (TextView) view.findViewById(R.id.pitch_text_view);
         mHorizontalInclinationTextView = (TextView) view.findViewById(R.id.roll_text_view);
+
+        // Set listeners
+        mSettingsButton.setOnClickListener(this);
     }
 
     @Override
@@ -229,7 +236,7 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
             // Update user location and recalculate relative azimuths of points from the new user location
             if (mUserLocationPoint == null || mUserLocationPoint.distanceTo(location) > MIN_DISTANCE_DIFFERENCE_BETWEEN_RECALCULATIONS) {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Recalculating points azimuth from the new user location");
-                mUserLocationPoint = new Point(getString(R.string.your_location), location);
+                mUserLocationPoint = new Point(getString(R.string.gps_your_location), location);
                 // Update points view
                 mPointsView.setPoints(mUserLocationPoint, PointService.sortPointsByRelativeAzimuth(mUserLocationPoint, mPoints));
             }
@@ -293,13 +300,22 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
                 dismissEnableGpsAlertDialog();
                 if (mLastGpsLocation != null && mLastGpsLocation.getTime() >= System.currentTimeMillis() - MAX_AGE_FOR_A_LOCATION) {
                     if (BuildConfig.DEBUG) Log.d(TAG, "GPS located");
-                    mGpsStatusTextView.setText(String.format(getString(R.string.gps_located), (System.currentTimeMillis() - mLastGpsLocation.getTime()) / 1000));
+                    mGpsStatusTextView.setText(String.format(getString(R.string.gps_updated), (System.currentTimeMillis() - mLastGpsLocation.getTime()) / 1000));
                 } else {
                     if (BuildConfig.DEBUG) Log.d(TAG, "GPS waiting for location");
                     mGpsStatusTextView.setText(getString(R.string.gps_waiting_for_location));
                     mPointsView.setPoints(null, null);
                 }
             }
+        }
+    }
+
+    // View.OnClickListener implementation
+    @Override
+    public void onClick(View v) {
+        if (R.id.settings_btn == v.getId()) {
+            final Intent intent = new Intent(getContext(), SettingsActivity.class);
+            startActivity(intent);
         }
     }
 

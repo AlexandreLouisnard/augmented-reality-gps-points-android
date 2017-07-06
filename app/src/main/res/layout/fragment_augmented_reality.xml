@@ -15,6 +15,17 @@
         android:id="@+id/texture_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
+    <com.louisnard.augmentedreality.views.PointsView
+        android:id="@+id/points_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <ImageButton
+        android:id="@+id/settings_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_menu_preferences"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"/>
     <com.louisnard.augmentedreality.views.CompassView
         android:id="@+id/compass_view"
         android:layout_width="100dp"
@@ -22,10 +33,6 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         custom:color="@color/colorAccent"/>
-    <com.louisnard.augmentedreality.views.PointsView
-        android:id="@+id/points_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
     <TextView
         android:id="@+id/gps_status_text_view"
         android:layout_width="wrap_content"

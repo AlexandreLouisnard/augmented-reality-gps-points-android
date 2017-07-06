@@ -6,11 +6,15 @@
     <string name="gps_disabled_alert_dialog_message">Your device GPS is currently disabled. Please enable it.</string>
     <string name="gps_disabled">GPS disabled</string>
     <string name="gps_waiting_for_location">Waiting for\nGPS location…</string>
-    <string name="gps_located">GPS update\n%1$ds ago</string>
-    <string name="your_location">Your location</string>
+    <string name="gps_updated">GPS updated\n%1$ds ago</string>
+    <string name="gps_your_location">Your location</string>
 
     <!-- Orientations -->
     <string name="pitch">Pitch\n%1$.0f °</string>
     <string name="roll">Roll\n%1$.0f °</string>
+
+    <!-- Settings -->
+    <string name="settings_activity">Augmented Reality Settings</string>
+    <string name="settings_import_gpx_file_btn">Import GPX file into database</string>
 
 </resources>

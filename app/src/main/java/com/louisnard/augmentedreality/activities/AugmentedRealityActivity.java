@@ -8,7 +8,7 @@ import com.louisnard.augmentedreality.R;
 import com.louisnard.augmentedreality.fragments.AugmentedRealityFragment;
 
 /**
- * Main activity showing a {@link android.support.v4.app.Fragment}.<br>
+ * Augmented reality {@link AppCompatActivity} showing a {@link AugmentedRealityFragment}.<br>
  *
  * @author Alexandre Louisnard
  */
@@ -22,7 +22,7 @@ public class AugmentedRealityActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // Set layout
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_simple_fragment);
 
         // Set fragment
         if (savedInstanceState == null) {

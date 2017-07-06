@@ -7,7 +7,7 @@ import com.louisnard.augmentedreality.model.database.DbContract;
 import com.louisnard.augmentedreality.model.services.PointService;
 
 /**
- * Class that holds a point and its coordinates.<br>
+ * Class that holds a point with a name, a description, a {@link Location}, etc.<br>
  *
  * @author Alexandre Louisnard
  */
