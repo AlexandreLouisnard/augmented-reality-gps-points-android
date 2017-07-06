@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
 
 import com.louisnard.augmentedreality.R;
 import com.louisnard.augmentedreality.fragments.SettingsFragment;
@@ -30,6 +31,13 @@ public class SettingsActivity extends AppCompatActivity {
 
         // Set toolbar
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setNavigationIcon(getDrawable(R.drawable.ic_arrow_drop_down_24dp));
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
         setSupportActionBar(toolbar);
 
         // Set fragment

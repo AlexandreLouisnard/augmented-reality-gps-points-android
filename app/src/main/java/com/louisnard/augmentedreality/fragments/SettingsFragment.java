@@ -2,17 +2,25 @@ package com.louisnard.augmentedreality.fragments;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
 
+import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.R;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Fragment showing the points around the user location using augmented reality over a camera preview.<br>
@@ -26,6 +34,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
 
     // Request codes
     private static final int REQUEST_PICK_GPX_FILE = 1;
+    private static final int REQUEST_STORAGE_READ_WRITE_PERMISSIONS = 2;
 
     // Views
     private Button mImportGpxFileButton;
@@ -62,7 +71,32 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         if (R.id.import_gpx_file_btn == v.getId()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_STORAGE_READ_WRITE_PERMISSIONS);
+            } else {
+                pickGpxFile();
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_STORAGE_READ_WRITE_PERMISSIONS && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
             pickGpxFile();
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (REQUEST_PICK_GPX_FILE == requestCode && resultCode == Activity.RESULT_OK) {
+            Uri uri = data.getData();
+            String gpxContent = readTextFromUri(uri);
+            Log.d("TEST", "GPX Content: " + gpxContent);
+        }
+        else {
+            super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
@@ -76,15 +110,21 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
         startActivityForResult(intent, REQUEST_PICK_GPX_FILE);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (REQUEST_PICK_GPX_FILE == requestCode && resultCode == Activity.RESULT_OK) {
-            Uri uri = data.getData();
-            String filePath = uri.getPath();
-            AlertDialogFragment.newInstance("file", filePath).show(getFragmentManager(), "");
+
+    private String readTextFromUri(Uri uri) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "readTextFromUri() for URI: " + uri.getPath());
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try {
+            InputStream inputStream = getContext().getContentResolver().openInputStream(uri);
+            int i = inputStream.read();
+            while (i != -1) {
+                byteArrayOutputStream.write(i);
+                i = inputStream.read();
+            }
+            inputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        else {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
+        return byteArrayOutputStream.toString();
     }
 }
