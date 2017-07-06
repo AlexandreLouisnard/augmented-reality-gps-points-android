@@ -16,5 +16,6 @@
     <!-- Settings -->
     <string name="settings_activity">Augmented Reality Settings</string>
     <string name="settings_import_gpx_file_btn">Import GPX file into database</string>
+    <string name="settings_pick_a_gpx_file">Pick a GPX file</string>
 
 </resources>

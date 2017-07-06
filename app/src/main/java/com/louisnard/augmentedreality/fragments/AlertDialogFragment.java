@@ -23,9 +23,13 @@ public class AlertDialogFragment extends DialogFragment implements DialogInterfa
 
     // Arguments
     private static final String KEY_TITLE_RES_ID = PACKAGE + ".key.TITLE_RES_ID";
+    private static final String KEY_TITLE = PACKAGE + ".key.TITLE";
     private static final String KEY_MESSAGE_RES_ID = PACKAGE + ".key.MESSAGE_RES_ID";
+    private static final String KEY_MESSAGE = PACKAGE + ".key.MESSAGE";
     private static final String KEY_POSITIVE_BUTTON_RES_ID = PACKAGE + ".key.POSITIVE_BUTTON_RES_ID";
+    private static final String KEY_POSITIVE_BUTTON = PACKAGE + ".key.POSITIVE_BUTTON";
     private static final String KEY_NEGATIVE_BUTTON_RES_ID = PACKAGE + ".key.NEGATIVE_BUTTON_RES_ID";
+    private static final String KEY_NEGATIVE_BUTTON = PACKAGE + ".key.NEGATIVE_BUTTON";
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the fragment.
@@ -46,8 +50,35 @@ public class AlertDialogFragment extends DialogFragment implements DialogInterfa
         final Bundle arguments = new Bundle();
         arguments.putInt(KEY_TITLE_RES_ID, titleResId);
         arguments.putInt(KEY_MESSAGE_RES_ID, messageResId);
-        arguments.putInt(KEY_POSITIVE_BUTTON_RES_ID, positiveButtonResId);
-        arguments.putInt(KEY_NEGATIVE_BUTTON_RES_ID, negativeButtonResId);
+        if (positiveButtonResId != 0) {
+            arguments.putInt(KEY_POSITIVE_BUTTON_RES_ID, positiveButtonResId);
+        }
+        if (negativeButtonResId != 0) {
+            arguments.putInt(KEY_NEGATIVE_BUTTON_RES_ID, negativeButtonResId);
+        }
+        alertDialogFragment.setArguments(arguments);
+        return alertDialogFragment;
+    }
+
+    /**
+     * Factory method to create a new instance of {@link AlertDialogFragment}.
+     * @param title the title text.
+     * @param message the message text.
+     * @param positiveButtonResId the positive button string resource identifier.
+     * @param negativeButtonResId the negative button string resource identifier.
+     * @return a new instance of {@link AlertDialogFragment}.
+     */
+    public static AlertDialogFragment newInstance(String title, String message, int positiveButtonResId, int negativeButtonResId) {
+        final AlertDialogFragment alertDialogFragment = new AlertDialogFragment();
+        final Bundle arguments = new Bundle();
+        arguments.putString(KEY_TITLE, title);
+        arguments.putString(KEY_MESSAGE, message);
+        if (positiveButtonResId != 0) {
+            arguments.putInt(KEY_POSITIVE_BUTTON_RES_ID, positiveButtonResId);
+        }
+        if (negativeButtonResId != 0) {
+            arguments.putInt(KEY_NEGATIVE_BUTTON_RES_ID, negativeButtonResId);
+        }
         alertDialogFragment.setArguments(arguments);
         return alertDialogFragment;
     }
@@ -62,6 +93,16 @@ public class AlertDialogFragment extends DialogFragment implements DialogInterfa
         return newInstance(titleResId, messageResId, android.R.string.ok, 0);
     }
 
+    /**
+     * Factory method to create a new instance of {@link AlertDialogFragment} that displays a simple OK button.
+     * @param title the title text.
+     * @param message the message text.
+     * @return a new instance of {@link AlertDialogFragment}.
+     */
+    public static AlertDialogFragment newInstance(String title, String message) {
+        return newInstance(title, message, android.R.string.ok, 0);
+    }
+
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -69,15 +110,23 @@ public class AlertDialogFragment extends DialogFragment implements DialogInterfa
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         if (arguments.containsKey(KEY_TITLE_RES_ID)) {
             builder.setTitle(arguments.getInt(KEY_TITLE_RES_ID));
+        } else if (arguments.containsKey(KEY_TITLE)) {
+            builder.setTitle(arguments.getString(KEY_TITLE));
         }
         if (arguments.containsKey(KEY_MESSAGE_RES_ID)) {
             builder.setMessage(arguments.getInt(KEY_MESSAGE_RES_ID));
+        } else if (arguments.containsKey(KEY_MESSAGE)) {
+            builder.setTitle(arguments.getString(KEY_MESSAGE));
         }
         if (arguments.containsKey(KEY_POSITIVE_BUTTON_RES_ID)) {
             builder.setPositiveButton(arguments.getInt(KEY_POSITIVE_BUTTON_RES_ID), this);
+        } else if (arguments.containsKey(KEY_POSITIVE_BUTTON)) {
+            builder.setPositiveButton(arguments.getString(KEY_POSITIVE_BUTTON), this);
         }
         if (arguments.containsKey(KEY_NEGATIVE_BUTTON_RES_ID)) {
             builder.setNegativeButton(arguments.getInt(KEY_NEGATIVE_BUTTON_RES_ID), this);
+        } else if (arguments.containsKey(KEY_NEGATIVE_BUTTON)) {
+            builder.setNegativeButton(arguments.getString(KEY_NEGATIVE_BUTTON), this);
         }
         return builder.create();
     }
