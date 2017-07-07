@@ -12,6 +12,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedMap;
@@ -122,17 +123,16 @@ public class PointService {
      * @return the {@link List<Point>} contained in the GPX file or <b>null</b> if the file is invalid or empty.
      */
     public static List<Point> parseGpx(InputStream inputStream) {
-        // TODO: check that the GPX file is valid
-        // TODO: parse GPX file
         List<Point> pointsList = new ArrayList<>();
         try {
+            // Initialize XmlPullParser
             final XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(true);
             final XmlPullParser xpp = factory.newPullParser();
             xpp.setInput(inputStream, null);
 
+            // Ensure this is a GPX file
             int eventType = xpp.getEventType();
-
             if (eventType != XmlPullParser.START_DOCUMENT) {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Invalid GPX file");
                 return null;
@@ -142,37 +142,47 @@ public class PointService {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Invalid GPX file");
                 return null;
             }
-            eventType = xpp.next();
 
+            // Parse points
+            eventType = xpp.next();
             Point temporaryPoint = null;
+            String currentTag = null;
             while (eventType != XmlPullParser.END_DOCUMENT) {
-                if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase("wpt")) {
-                    // New waypoint
+                if (eventType == XmlPullParser.START_TAG
+                        && xpp.getName().equalsIgnoreCase("wpt")) {
+                    // <wpt>: create a new Point
                     temporaryPoint = new Point();
                     temporaryPoint.setLatitude(Double.valueOf(xpp.getAttributeValue(null, "lat")));
                     temporaryPoint.setLongitude(Double.valueOf(xpp.getAttributeValue(null, "lon")));
-                } else if (eventType == XmlPullParser.END_TAG && xpp.getName().equalsIgnoreCase("wpt")) {
-                    // End of waypoint, add it to the list
+                } else if (eventType == XmlPullParser.END_TAG
+                        && xpp.getName().equalsIgnoreCase("wpt")) {
+                    // </wpt>: add the new Point to the list
                     if (temporaryPoint != null && temporaryPoint.isValid()) {
                         pointsList.add(temporaryPoint);
                     }
                     temporaryPoint = null;
-                } else if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase("name")) {
-                    // TODO
-
-                } else if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase("ele")) {
-                    // TODO
-
-                } else if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase("desc")) {
-                    // TODO
-
+                } else if (eventType == XmlPullParser.START_TAG
+                        && (xpp.getName().equalsIgnoreCase("name") || xpp.getName().equalsIgnoreCase("ele") || xpp.getName().equalsIgnoreCase("desc"))) {
+                    // <name> or <ele> or <desc>
+                    currentTag = xpp.getName();
+                } else if (eventType == XmlPullParser.END_TAG
+                        && (xpp.getName().equalsIgnoreCase("name") || xpp.getName().equalsIgnoreCase("ele") || xpp.getName().equalsIgnoreCase("desc"))) {
+                    // </name> or </ele> or </desc>
+                    currentTag = null;
                 } else if (eventType == XmlPullParser.TEXT) {
-                    // TODO
-                    Log.d(TAG, "Text "+xpp.getText());
+                    // Text node
+                    if (currentTag != null && temporaryPoint != null) {
+                        if (currentTag.equals("name")) {
+                            temporaryPoint.setName(xpp.getText());
+                        } else if (currentTag.equals("ele")) {
+                            temporaryPoint.setAltitude(Integer.valueOf(xpp.getText()));
+                        } else if (currentTag.equals("desc")) {
+                            temporaryPoint.setDescription(xpp.getText());
+                        }
+                    }
                 }
                 eventType = xpp.next();
             }
-            Log.d(TAG, "End document");
         } catch (XmlPullParserException | IOException e) {
             e.printStackTrace();
         }

@@ -2,8 +2,11 @@
 
     <!-- Global data -->
     <string name="app_name">Augmented Reality GPS Points</string>
-    <string name="augmented_reality_activity">@string/app_name</string>
     <string name="error">Error</string>
+
+    <!-- Activities -->
+    <string name="activity_augmented_reality">@string/app_name</string>
+    <string name="activity_settings">Augmented Reality Settings</string>
 
     <!-- GPS Location -->
     <string name="gps">GPS</string>
@@ -18,9 +21,13 @@
     <string name="roll">Roll\n%1$.0f °</string>
 
     <!-- Settings -->
-    <string name="settings_activity">Augmented Reality Settings</string>
     <string name="settings_import_gpx_file_btn">Import GPX file into database</string>
-    <string name="settings_pick_a_gpx_file">Pick a GPX file</string>
-    <string name="settings_not_a_gpx_file_alert_dialog_message">Not a valid GPX file.</string>
+
+    <!-- GPX -->
+    <string name="gpx_pick_a_file">Pick a GPX file</string>
+    <string name="gpx_invalid_file_alert_message">Invalid GPX file.</string>
+    <string name="gpx_parsed_alert_title">GPX parsed</string>
+    <string name="gpx_parsed_no_points_alert_message">No points were found.</string>
+    <string name="gpx_parsed_alert_message">%1$d points were found. Import them ?</string>
 
 </resources>

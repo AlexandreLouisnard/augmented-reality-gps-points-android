@@ -20,7 +20,7 @@
         android:supportsRtl="false">
 
         <activity android:name=".activities.AugmentedRealityActivity"
-            android:label="@string/augmented_reality_activity"
+            android:label="@string/activity_augmented_reality"
             android:screenOrientation="fullSensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,7 +29,7 @@
         </activity>
 
         <activity android:name=".activities.SettingsActivity"
-            android:label="@string/settings_activity"
+            android:label="@string/activity_settings"
             android:parentActivityName=".activities.AugmentedRealityActivity"
             android:screenOrientation="fullSensor">
         </activity>

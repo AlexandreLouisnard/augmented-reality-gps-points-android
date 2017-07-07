@@ -3,7 +3,6 @@ package com.louisnard.augmentedreality.fragments;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,11 +20,8 @@ import com.louisnard.augmentedreality.R;
 import com.louisnard.augmentedreality.model.objects.Point;
 import com.louisnard.augmentedreality.model.services.PointService;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -111,18 +107,30 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
                 return;
             }
 
-            // Parse
-            List<Point> mPointsList;
+            // Read file and parse
+            InputStream inputStream = null;
             try {
-                final InputStream inputStream = getContext().getContentResolver().openInputStream(uri);
-                mPointsList = PointService.parseGpx(inputStream);
-                if (mPointsList == null) {
+                inputStream = getContext().getContentResolver().openInputStream(uri);
+                if (inputStream == null) {
                     alertInvalidGpxFile();
                     return;
                 }
-                // TODO: add points to DB (asynchronously ?)
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
+            }
+
+            List<Point> mPointsList = PointService.parseGpx(inputStream);
+            if (mPointsList == null) {
+                alertInvalidGpxFile();
+                return;
+            }
+            int pointsNumber = mPointsList.size();
+            if (BuildConfig.DEBUG) Log.d(TAG, "Parsed " + pointsNumber + " points from the GPX file");
+
+            if (pointsNumber == 0) {
+                AlertDialogFragment.newInstance(R.string.gpx_parsed_alert_title, R.string.gpx_parsed_no_points_alert_message).show(getFragmentManager(), AlertDialogFragment.TAG);
+            } else {
+                AlertDialogFragment.newInstance(getString(R.string.gpx_parsed_alert_title), String.format(getString(R.string.gpx_parsed_alert_message), pointsNumber)).show(getFragmentManager(), AlertDialogFragment.TAG);
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data);
@@ -131,7 +139,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
 
     private void alertInvalidGpxFile() {
         if (BuildConfig.DEBUG) Log.d(TAG, "Invalid GPX file");
-        AlertDialogFragment.newInstance(R.string.error, R.string.settings_not_a_gpx_file_alert_dialog_message).show(getFragmentManager(), AlertDialogFragment.TAG);
+        AlertDialogFragment.newInstance(R.string.error, R.string.gpx_invalid_file_alert_message).show(getFragmentManager(), AlertDialogFragment.TAG);
     }
 
     private void pickFile() {
@@ -140,24 +148,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
         chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
         chooseFile.addCategory(Intent.CATEGORY_OPENABLE);
         chooseFile.setType("*/*");
-        intent = Intent.createChooser(chooseFile, getString(R.string.settings_pick_a_gpx_file));
+        intent = Intent.createChooser(chooseFile, getString(R.string.gpx_pick_a_file));
         startActivityForResult(intent, REQUEST_PICK_GPX_FILE);
     }
-
-
-    /*private String readTextFromUri(Uri uri) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try {
-            InputStream inputStream = getContext().getContentResolver().openInputStream(uri);
-            int i = inputStream.read();
-            while (i != -1) {
-                byteArrayOutputStream.write(i);
-                i = inputStream.read();
-            }
-            inputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return byteArrayOutputStream.toString();
-    }*/
 }
