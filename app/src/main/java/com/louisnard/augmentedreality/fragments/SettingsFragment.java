@@ -37,9 +37,13 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
     // Request codes
     private static final int REQUEST_PICK_GPX_FILE = 1;
     private static final int REQUEST_STORAGE_READ_WRITE_PERMISSIONS = 2;
+    private static final int REQUEST_SAVE_POINTS_IN_DB = 3;
 
     // Views
     private Button mImportGpxFileButton;
+
+    // GPX parsing
+    List<Point> mParsedPointsList;
 
 
     @Override
@@ -119,19 +123,25 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
                 e.printStackTrace();
             }
 
-            List<Point> mPointsList = PointService.parseGpx(inputStream);
-            if (mPointsList == null) {
+            mParsedPointsList = PointService.parseGpx(inputStream);
+            if (mParsedPointsList == null) {
                 alertInvalidGpxFile();
                 return;
             }
-            int pointsNumber = mPointsList.size();
+            int pointsNumber = mParsedPointsList.size();
             if (BuildConfig.DEBUG) Log.d(TAG, "Parsed " + pointsNumber + " points from the GPX file");
 
             if (pointsNumber == 0) {
                 AlertDialogFragment.newInstance(R.string.gpx_parsed_alert_title, R.string.gpx_parsed_no_points_alert_message).show(getFragmentManager(), AlertDialogFragment.TAG);
             } else {
-                AlertDialogFragment.newInstance(getString(R.string.gpx_parsed_alert_title), String.format(getString(R.string.gpx_parsed_alert_message), pointsNumber)).show(getFragmentManager(), AlertDialogFragment.TAG);
+                // TODO: add a checkbox in the alert dialog to erase all points from DB before importing
+                AlertDialogFragment alertDialogFragment = AlertDialogFragment.newInstance(getString(R.string.gpx_parsed_alert_title), String.format(getString(R.string.gpx_parsed_alert_message), pointsNumber), android.R.string.ok, android.R.string.cancel);
+                alertDialogFragment.setTargetFragment(this, REQUEST_SAVE_POINTS_IN_DB);
+                alertDialogFragment.show(getFragmentManager(), AlertDialogFragment.TAG);
             }
+        } else if (REQUEST_SAVE_POINTS_IN_DB == requestCode && resultCode == Activity.RESULT_OK) {
+            if (BuildConfig.DEBUG) Log.d(TAG, "Saving " + mParsedPointsList.size() + " points in database");
+            // TODO: save points in DB
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
