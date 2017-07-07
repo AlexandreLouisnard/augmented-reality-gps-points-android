@@ -3,6 +3,7 @@ package com.louisnard.augmentedreality.fragments;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -101,21 +102,24 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
             if (BuildConfig.DEBUG) Log.d(TAG, "Picked file of type: " + mimeType + " and URI: " + uri.getPath());
 
             // Check that the file is a GPX file
-            if (mimeType.compareTo("application/gpx+xml") != 0
-                    && mimeType.compareTo("application/gpx") != 0
-                    && mimeType.compareTo("application/octet-stream") != 0
-                    && mimeType.compareTo("text/plain") != 0) {
-                if (BuildConfig.DEBUG) Log.d(TAG, "Invalid GPX file");
-                AlertDialogFragment.newInstance(R.string.error, R.string.settings_not_a_gpx_file_alert_dialog_message).show(getFragmentManager(), AlertDialogFragment.TAG);
+            if (!uri.getPath().matches(".*\\.gpx$")
+                    && !mimeType.equalsIgnoreCase("application/gpx+xml")
+                    && !mimeType.equalsIgnoreCase("application/gpx")
+                    && !mimeType.equalsIgnoreCase("application/octet-stream")
+                    && !mimeType.equalsIgnoreCase("text/plain")) {
+                alertInvalidGpxFile();
                 return;
             }
 
             // Parse
-            List<Point> mPointsList = new ArrayList<Point>();
+            List<Point> mPointsList;
             try {
                 final InputStream inputStream = getContext().getContentResolver().openInputStream(uri);
                 mPointsList = PointService.parseGpx(inputStream);
-                // TODO: parse gpx
+                if (mPointsList == null) {
+                    alertInvalidGpxFile();
+                    return;
+                }
                 // TODO: add points to DB (asynchronously ?)
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -123,6 +127,11 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    private void alertInvalidGpxFile() {
+        if (BuildConfig.DEBUG) Log.d(TAG, "Invalid GPX file");
+        AlertDialogFragment.newInstance(R.string.error, R.string.settings_not_a_gpx_file_alert_dialog_message).show(getFragmentManager(), AlertDialogFragment.TAG);
     }
 
     private void pickFile() {

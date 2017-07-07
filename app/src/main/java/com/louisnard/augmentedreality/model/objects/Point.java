@@ -21,6 +21,13 @@ public class Point {
 
     // Constructors
     /**
+     * Constructs a new instance of {@link Point}, empty.
+     */
+    public Point() {
+        // Empty constructor
+    }
+
+    /**
      * Constructs a new instance of {@link Point} from coordinates.
      * @param name the name.
      * @param description the description.
@@ -170,6 +177,9 @@ public class Point {
      * @param latitude the latitude in degrees.
      */
     public void setLatitude(double latitude) {
+        if (mLocation == null) {
+            mLocation = new Location("");
+        }
         mLocation.setLatitude(PointService.getValidLatitude(latitude));
     }
 
@@ -178,6 +188,9 @@ public class Point {
      * @param longitude the latitude in degrees.
      */
     public void setLongitude(double longitude) {
+        if (mLocation == null) {
+            mLocation = new Location("");
+        }
         mLocation.setLongitude(PointService.getValidLongitude(longitude));
     }
 
@@ -186,7 +199,23 @@ public class Point {
      * @param altitude the altitude in meters.
      */
     public void setAltitude(int altitude) {
+        if (mLocation == null) {
+            mLocation = new Location("");
+        }
         mLocation.setAltitude(altitude);
+    }
+
+    /**
+     * Indicates whether this {@link Point} is valid or not. It must have a valid {@link Location} and a valid name.
+     * @return <b>true</b> if the {@link Point} is valid. <b>false</b> otherwise.
+     */
+    public boolean isValid() {
+        if (mLocation == null
+                || (getLatitude() == 0 && getLongitude() == 0 && getAltitude() == 0)
+                || getName() == null) {
+            return false;
+        }
+        return true;
     }
 
     // Calculations
@@ -197,6 +226,9 @@ public class Point {
      * @return the distance (in meters).
      */
     public int distanceTo(Point point) {
+        if (mLocation == null || point.getLocation() == null) {
+            return 0;
+        }
         return (int) mLocation.distanceTo(point.getLocation());
     }
 
@@ -207,6 +239,9 @@ public class Point {
      * @return the distance (in meters).
      */
     public int distanceTo(Location location) {
+        if (mLocation == null || location == null) {
+            return 0;
+        }
         return (int) mLocation.distanceTo(location);
     }
 
@@ -217,6 +252,9 @@ public class Point {
      * @return the azimuth to this point (in degrees), taken clockwise from north, from 0° to 360°.
      */
     public float azimuthTo(Point point) {
+        if (mLocation == null || point.getLocation() == null) {
+            return 0;
+        }
         float azimuth = getLocation().bearingTo(point.getLocation());
         if (azimuth < 0 && azimuth >= -180) {
             azimuth += 360;
@@ -234,6 +272,9 @@ public class Point {
      * @return the vertical angle to this point (in degrees), from -90° to 90°.
      */
     public float verticalAngleTo(Point point) {
+        if (mLocation == null || point.getLocation() == null) {
+            return 0;
+        }
         final float distance = distanceTo(point);
         final float heightDifference = (float) (point.getLocation().getAltitude() - getLocation().getAltitude());
         float angle;

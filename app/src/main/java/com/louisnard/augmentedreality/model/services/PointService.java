@@ -119,7 +119,7 @@ public class PointService {
     /**
      * Parses a GPX file {@link InputStream} and returns the {@link List<Point>} that it contains.
      * @param inputStream the {@link InputStream} of the GPX file.
-     * @return the {@link List<Point>} contained in the GPX file.
+     * @return the {@link List<Point>} contained in the GPX file or <b>null</b> if the file is invalid or empty.
      */
     public static List<Point> parseGpx(InputStream inputStream) {
         // TODO: check that the GPX file is valid
@@ -138,20 +138,36 @@ public class PointService {
                 return null;
             }
             eventType = xpp.next();
-            if (eventType != XmlPullParser.START_TAG || xpp.getName().compareTo("gpx") != 0) { // TODO: make case insensitive
+            if (eventType != XmlPullParser.START_TAG || !xpp.getName().equalsIgnoreCase("gpx")) {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Invalid GPX file");
                 return null;
             }
             eventType = xpp.next();
 
+            Point temporaryPoint = null;
             while (eventType != XmlPullParser.END_DOCUMENT) {
-                if(eventType == XmlPullParser.START_DOCUMENT) {
-                    Log.d(TAG, "Start document");
-                } else if(eventType == XmlPullParser.START_TAG) {
-                    Log.d(TAG, "Start tag "+xpp.getName());
-                } else if(eventType == XmlPullParser.END_TAG) {
-                    Log.d(TAG, "End tag "+xpp.getName());
-                } else if(eventType == XmlPullParser.TEXT) {
+                if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase("wpt")) {
+                    // New waypoint
+                    temporaryPoint = new Point();
+                    temporaryPoint.setLatitude(Double.valueOf(xpp.getAttributeValue(null, "lat")));
+                    temporaryPoint.setLongitude(Double.valueOf(xpp.getAttributeValue(null, "lon")));
+                } else if (eventType == XmlPullParser.END_TAG && xpp.getName().equalsIgnoreCase("wpt")) {
+                    // End of waypoint, add it to the list
+                    if (temporaryPoint != null && temporaryPoint.isValid()) {
+                        pointsList.add(temporaryPoint);
+                    }
+                    temporaryPoint = null;
+                } else if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase("name")) {
+                    // TODO
+
+                } else if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase("ele")) {
+                    // TODO
+
+                } else if (eventType == XmlPullParser.START_TAG && xpp.getName().equalsIgnoreCase("desc")) {
+                    // TODO
+
+                } else if (eventType == XmlPullParser.TEXT) {
+                    // TODO
                     Log.d(TAG, "Text "+xpp.getText());
                 }
                 eventType = xpp.next();
