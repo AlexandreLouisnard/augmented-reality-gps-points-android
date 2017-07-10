@@ -9,9 +9,11 @@
     <!-- Activities -->
     <string name="activity_augmented_reality">@string/app_name</string>
     <string name="activity_settings">Augmented Reality Settings</string>
+    <string name="activity_points_list">Points list</string>
 
     <!-- Settings -->
     <string name="settings_category_points">@string/points</string>
+    <string name="settings_list_current_points">List current points</string>
     <string name="settings_import_gpx_file">Import GPX file into database</string>
 
     <!-- Points -->

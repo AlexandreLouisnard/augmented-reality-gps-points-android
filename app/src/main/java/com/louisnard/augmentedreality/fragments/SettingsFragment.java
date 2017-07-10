@@ -17,6 +17,7 @@ import android.widget.Button;
 
 import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.R;
+import com.louisnard.augmentedreality.activities.PointsListActivity;
 import com.louisnard.augmentedreality.model.database.DbContract;
 import com.louisnard.augmentedreality.model.database.DbHelper;
 import com.louisnard.augmentedreality.model.objects.Point;
@@ -42,6 +43,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
     private static final int REQUEST_SAVE_POINTS_IN_DB = 3;
 
     // Views
+    private Button mListCurrentPoints;
     private Button mImportGpxFileButton;
 
     // GPX parsing
@@ -64,9 +66,11 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
         super.onViewCreated(view, savedInstanceState);
 
         // Views
+        mListCurrentPoints = (Button) view.findViewById(R.id.list_current_points_btn);
         mImportGpxFileButton = (Button) view.findViewById(R.id.import_gpx_file_btn);
 
         // Listeners
+        mListCurrentPoints.setOnClickListener(this);
         mImportGpxFileButton.setOnClickListener(this);
     }
 
@@ -78,7 +82,9 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
     // View.OnClickListener implementation
     @Override
     public void onClick(View v) {
-        if (R.id.import_gpx_file_btn == v.getId()) {
+        if (R.id.list_current_points_btn == v.getId()) {
+            startActivity(new Intent(getContext(), PointsListActivity.class));
+        } else if (R.id.import_gpx_file_btn == v.getId()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_STORAGE_READ_WRITE_PERMISSIONS);
             } else {

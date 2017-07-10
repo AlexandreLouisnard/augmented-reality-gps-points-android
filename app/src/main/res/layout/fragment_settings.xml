@@ -12,6 +12,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <Button
+        android:id="@+id/list_current_points_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/settings_list_current_points"/>
+    <Button
         android:id="@+id/import_gpx_file_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

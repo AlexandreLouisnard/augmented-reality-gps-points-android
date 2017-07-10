@@ -33,7 +33,6 @@ public class SettingsActivity extends AppCompatActivity {
         // Set fragment
         if (savedInstanceState == null) {
             final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            // TODO: convert SettingsFragment into a PreferenceFragment
             transaction.replace(R.id.fragment, new SettingsFragment());
             transaction.commit();
         }

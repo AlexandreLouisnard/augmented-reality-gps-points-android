@@ -34,6 +34,12 @@
             android:screenOrientation="fullSensor">
         </activity>
 
+        <activity android:name=".activities.PointsListActivity"
+            android:label="@string/activity_points_list"
+            android:parentActivityName=".activities.SettingsActivity"
+            android:screenOrientation="fullSensor">
+        </activity>
+
     </application>
 
 </manifest>
