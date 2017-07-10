@@ -152,8 +152,8 @@ public class PointService {
                         && xpp.getName().equalsIgnoreCase("wpt")) {
                     // <wpt>: create a new Point
                     temporaryPoint = new Point();
-                    temporaryPoint.setLatitude(Double.valueOf(xpp.getAttributeValue(null, "lat")));
-                    temporaryPoint.setLongitude(Double.valueOf(xpp.getAttributeValue(null, "lon")));
+                    temporaryPoint.setLatitude(Double.parseDouble(xpp.getAttributeValue(null, "lat")));
+                    temporaryPoint.setLongitude(Double.parseDouble(xpp.getAttributeValue(null, "lon")));
                 } else if (eventType == XmlPullParser.END_TAG
                         && xpp.getName().equalsIgnoreCase("wpt")) {
                     // </wpt>: add the new Point to the list
@@ -175,7 +175,7 @@ public class PointService {
                         if (currentTag.equals("name")) {
                             temporaryPoint.setName(xpp.getText());
                         } else if (currentTag.equals("ele")) {
-                            temporaryPoint.setAltitude(Integer.valueOf(xpp.getText()));
+                            temporaryPoint.setAltitude((int) Double.parseDouble(xpp.getText()));
                         } else if (currentTag.equals("desc")) {
                             temporaryPoint.setDescription(xpp.getText());
                         }

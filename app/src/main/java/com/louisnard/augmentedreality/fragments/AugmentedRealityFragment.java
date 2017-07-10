@@ -27,8 +27,6 @@ import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.DevUtils;
 import com.louisnard.augmentedreality.R;
 import com.louisnard.augmentedreality.activities.SettingsActivity;
-import com.louisnard.augmentedreality.mock.MockPoint;
-import com.louisnard.augmentedreality.model.database.DbContract;
 import com.louisnard.augmentedreality.model.database.DbHelper;
 import com.louisnard.augmentedreality.model.objects.Point;
 import com.louisnard.augmentedreality.model.services.Compass;
@@ -166,11 +164,6 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
 
         // Start GPS updated checks
         mCheckGpsHandler.postDelayed(mCheckGpsRunnable, 1000);
-
-        // TODO: for test use only: populate database
-        final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
-        dbHelper.clearTable(DbContract.PointsColumns.TABLE_NAME);
-        dbHelper.addPoints(MockPoint.getPoints());
     }
 
 
@@ -206,8 +199,8 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
     @Override
     public void onOrientationChanged(float azimuth, float verticalInclination, float horizontalInclination) {
         mCompassView.updateAzimuth(azimuth);
-        mVerticalInclinationTextView.setText(String.format(getString(R.string.pitch), verticalInclination));
-        mHorizontalInclinationTextView.setText(String.format(getString(R.string.roll), horizontalInclination));
+        mVerticalInclinationTextView.setText(String.format(getString(R.string.orientation_pitch_degrees), verticalInclination));
+        mHorizontalInclinationTextView.setText(String.format(getString(R.string.orientation_roll_degrees), horizontalInclination));
         mPointsView.updateOrientation(azimuth, verticalInclination, horizontalInclination);
     }
 
@@ -300,7 +293,7 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
                 dismissEnableGpsAlertDialog();
                 if (mLastGpsLocation != null && mLastGpsLocation.getTime() >= System.currentTimeMillis() - MAX_AGE_FOR_A_LOCATION) {
                     if (BuildConfig.DEBUG) Log.d(TAG, "GPS located");
-                    mGpsStatusTextView.setText(String.format(getString(R.string.gps_updated), (System.currentTimeMillis() - mLastGpsLocation.getTime()) / 1000));
+                    mGpsStatusTextView.setText(String.format(getString(R.string.gps_updated_seconds_ago), (System.currentTimeMillis() - mLastGpsLocation.getTime()) / 1000));
                 } else {
                     if (BuildConfig.DEBUG) Log.d(TAG, "GPS waiting for location");
                     mGpsStatusTextView.setText(getString(R.string.gps_waiting_for_location));
@@ -322,7 +315,7 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
     // Display an alert dialog asking the user to enable the GPS
     private void showEnableGpsAlertDialog() {
         if (isAdded() && getFragmentManager().findFragmentByTag(TAG_ALERT_DIALOG_ENABLE_GPS) == null) {
-            final AlertDialogFragment alertDialogFragment = AlertDialogFragment.newInstance(R.string.gps, R.string.gps_disabled_alert_dialog_message, android.R.string.ok, android.R.string.cancel);
+            final AlertDialogFragment alertDialogFragment = AlertDialogFragment.newInstance(R.string.gps, R.string.gps_disabled_alert_message, android.R.string.ok, android.R.string.cancel);
             alertDialogFragment.setTargetFragment(this, REQUEST_ENABLE_GPS);
             final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
             fragmentTransaction.add(alertDialogFragment, TAG_ALERT_DIALOG_ENABLE_GPS);
