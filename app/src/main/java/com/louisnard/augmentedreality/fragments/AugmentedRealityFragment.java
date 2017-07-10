@@ -27,7 +27,7 @@ import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.DevUtils;
 import com.louisnard.augmentedreality.R;
 import com.louisnard.augmentedreality.activities.SettingsActivity;
-import com.louisnard.augmentedreality.model.database.DbHelper;
+import com.louisnard.augmentedreality.model.database.ARDbHelper;
 import com.louisnard.augmentedreality.model.objects.Point;
 import com.louisnard.augmentedreality.model.services.Compass;
 import com.louisnard.augmentedreality.model.services.PointService;
@@ -156,7 +156,7 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
 
         // Dump database for debug use only
         if (BuildConfig.DEBUG) {
-            DevUtils.exportDatabaseToExternalStorage(getActivity(), DbHelper.getDbName());
+            DevUtils.exportDatabaseToExternalStorage(getActivity(), ARDbHelper.getDbName());
         }
 
         // Start compass
@@ -221,7 +221,7 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
             // Load points around the user from the database
             if (mPoints == null || mUserLocationAtLastDbReading == null || mUserLocationAtLastDbReading.distanceTo(location) > MIN_DISTANCE_DIFFERENCE_BETWEEN_DATABASE_RELOADS) {
                 mUserLocationAtLastDbReading = location;
-                final DbHelper dbHelper = DbHelper.getInstance(getActivity().getApplicationContext());
+                final ARDbHelper dbHelper = ARDbHelper.getInstance(getActivity().getApplicationContext());
                 mPoints = dbHelper.getPointsAround(location, MAX_RADIUS_DISTANCE_TO_SEARCH_POINTS_AROUND);
                 if (BuildConfig.DEBUG) Log.d(TAG, "Found " + mPoints.size() + " points in the database around the new user location");
             }

@@ -3,7 +3,7 @@ package com.louisnard.augmentedreality.model.objects;
 import android.database.Cursor;
 import android.location.Location;
 
-import com.louisnard.augmentedreality.model.database.DbContract;
+import com.louisnard.augmentedreality.model.database.ARDbContract;
 import com.louisnard.augmentedreality.model.services.PointService;
 
 /**
@@ -80,13 +80,13 @@ public class Point {
      */
     public Point(Cursor cursor) {
         if (cursor != null) {
-            mId = cursor.getLong((cursor.getColumnIndex(DbContract.PointsColumns._ID)));
-            mName = cursor.getString(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_NAME));
-            mDescription = cursor.getString(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_DESCRIPTION));
+            mId = cursor.getLong((cursor.getColumnIndex(ARDbContract.PointsColumns._ID)));
+            mName = cursor.getString(cursor.getColumnIndex(ARDbContract.PointsColumns.COLUMN_NAME));
+            mDescription = cursor.getString(cursor.getColumnIndex(ARDbContract.PointsColumns.COLUMN_DESCRIPTION));
             mLocation = new Location("");
-            mLocation.setLatitude(cursor.getDouble(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_LATITUDE)));
-            mLocation.setLongitude(cursor.getDouble(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_LONGITUDE)));
-            mLocation.setAltitude(cursor.getInt(cursor.getColumnIndex(DbContract.PointsColumns.COLUMN_ALTITUDE)));
+            mLocation.setLatitude(cursor.getDouble(cursor.getColumnIndex(ARDbContract.PointsColumns.COLUMN_LATITUDE)));
+            mLocation.setLongitude(cursor.getDouble(cursor.getColumnIndex(ARDbContract.PointsColumns.COLUMN_LONGITUDE)));
+            mLocation.setAltitude(cursor.getInt(cursor.getColumnIndex(ARDbContract.PointsColumns.COLUMN_ALTITUDE)));
         }
     }
 

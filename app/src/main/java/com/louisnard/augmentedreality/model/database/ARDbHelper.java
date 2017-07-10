@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.louisnard.augmentedreality.BuildConfig;
@@ -20,47 +21,58 @@ import java.util.List;
  *
  * @author Alexandre Louisnard
  */
-public class DbHelper extends SQLiteOpenHelper {
+public class ARDbHelper extends SQLiteOpenHelper {
 
     // TODO: improve database with a content provider
     // TODO: make big operations asynchronous (such as adding many points from a GPX file)
 
     // Tag
-    private static final String TAG = DbHelper.class.getSimpleName();
+    private static final String TAG = ARDbHelper.class.getSimpleName();
 
     // Database information
     private static final String DATABASE_NAME = "database.db";
     private static final int DATABASE_VERSION = 1;
 
     // Singleton pattern
-    private static DbHelper sInstance;
-
-    // SQL requests
-    private static final String SQL_CREATE_TABLE_POINTS = "CREATE TABLE " + DbContract.PointsColumns.TABLE_NAME
-            + " (" + DbContract.PointsColumns._ID + " INTEGER PRIMARY KEY,"
-            + DbContract.PointsColumns.COLUMN_NAME + " TEXT,"
-            + DbContract.PointsColumns.COLUMN_DESCRIPTION + " TEXT,"
-            + DbContract.PointsColumns.COLUMN_LATITUDE + " REAL,"
-            + DbContract.PointsColumns.COLUMN_LONGITUDE + " REAL,"
-            + DbContract.PointsColumns.COLUMN_ALTITUDE + " INTEGER)";
+    private static ARDbHelper sInstance;
 
     /**
-     * Constructs a new instance of {@link DbHelper}.<br>
+     * {@link ARDbHelper} asynchronous operations listener.
+     */
+    public interface ARDbHelperListener {
+        /**
+         * Called whenever an {@link ARDbHelper} asynchronous {@link Point}s insertion operation completes.
+         * @param insertedPointsNumber the number of inserted {@link Point}s.
+         */
+        void onPointsInserted(long insertedPointsNumber);
+    }
+
+    // SQL requests
+    private static final String SQL_CREATE_TABLE_POINTS = "CREATE TABLE " + ARDbContract.PointsColumns.TABLE_NAME
+            + " (" + ARDbContract.PointsColumns._ID + " INTEGER PRIMARY KEY,"
+            + ARDbContract.PointsColumns.COLUMN_NAME + " TEXT,"
+            + ARDbContract.PointsColumns.COLUMN_DESCRIPTION + " TEXT,"
+            + ARDbContract.PointsColumns.COLUMN_LATITUDE + " REAL,"
+            + ARDbContract.PointsColumns.COLUMN_LONGITUDE + " REAL,"
+            + ARDbContract.PointsColumns.COLUMN_ALTITUDE + " INTEGER)";
+
+    /**
+     * Constructs a new instance of {@link ARDbHelper}.<br>
      * Private constructor to prevent accidental instantiation.
      * @param applicationContext the {@link Context} to use to open or create the database.
      */
-    private DbHelper(Context applicationContext) {
+    private ARDbHelper(Context applicationContext) {
         super(applicationContext, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     /**
-     * Initializes if necessary and returns the singleton instance of {@link DbHelper}.
+     * Initializes if necessary and returns the singleton instance of {@link ARDbHelper}.
      * @param applicationContext the application context to avoid leaking an activity context.
-     * @return the singleton instance of {@link DbHelper}.
+     * @return the singleton instance of {@link ARDbHelper}.
      */
-    public static synchronized DbHelper getInstance(Context applicationContext) {
+    public static synchronized ARDbHelper getInstance(Context applicationContext) {
         if (sInstance == null) {
-            sInstance = new DbHelper(applicationContext);
+            sInstance = new ARDbHelper(applicationContext);
         }
         return sInstance;
     }
@@ -98,8 +110,8 @@ public class DbHelper extends SQLiteOpenHelper {
      * @return the {@link List<Point>}.
      */
     public List<Point> getAllPoints() {
-        final SQLiteDatabase db = getWritableDatabase();
-        final Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, null, null, null, null, null, null);
+        final SQLiteDatabase db = getReadableDatabase();
+        final Cursor cursor = db.query(ARDbContract.PointsColumns.TABLE_NAME, null, null, null, null, null, null);
         final List<Point> points = new ArrayList<>();
         while (cursor.moveToNext()) {
             points.add(new Point(cursor));
@@ -123,9 +135,9 @@ public class DbHelper extends SQLiteOpenHelper {
         final String lonMin = String.valueOf((location.getLongitude() - PointService.metersToDegrees(distance)) % 180);
         final String lonMax = String.valueOf((location.getLongitude() + PointService.metersToDegrees(distance)) % 180);
         // Read database
-        final SQLiteDatabase db = getWritableDatabase();
-        final Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, null,
-                DbContract.PointsColumns.COLUMN_LATITUDE + " >= ? AND " + DbContract.PointsColumns.COLUMN_LATITUDE + " <= ? AND " + DbContract.PointsColumns.COLUMN_LONGITUDE + " >= ? AND " + DbContract.PointsColumns.COLUMN_LONGITUDE + " <= ?",
+        final SQLiteDatabase db = getReadableDatabase();
+        final Cursor cursor = db.query(ARDbContract.PointsColumns.TABLE_NAME, null,
+                ARDbContract.PointsColumns.COLUMN_LATITUDE + " >= ? AND " + ARDbContract.PointsColumns.COLUMN_LATITUDE + " <= ? AND " + ARDbContract.PointsColumns.COLUMN_LONGITUDE + " >= ? AND " + ARDbContract.PointsColumns.COLUMN_LONGITUDE + " <= ?",
                 new String[] {latMin, latMax, lonMin, lonMax}, null, null, null);
         final List<Point> points = new ArrayList<>();
         while (cursor.moveToNext()) {
@@ -143,8 +155,8 @@ public class DbHelper extends SQLiteOpenHelper {
      */
     public List<Point> findPointsByName(String name) {
         // Read database
-        final SQLiteDatabase db = getWritableDatabase();
-        final Cursor cursor = db.query(DbContract.PointsColumns.TABLE_NAME, null, DbContract.PointsColumns.COLUMN_NAME + " LIKE '%" + name + "%'", null, null, null, null);
+        final SQLiteDatabase db = getReadableDatabase();
+        final Cursor cursor = db.query(ARDbContract.PointsColumns.TABLE_NAME, null, ARDbContract.PointsColumns.COLUMN_NAME + " LIKE '%" + name + "%'", null, null, null, null);
         final List<Point> points = new ArrayList<>();
         while (cursor.moveToNext()) {
             points.add(new Point(cursor));
@@ -194,15 +206,52 @@ public class DbHelper extends SQLiteOpenHelper {
      */
     private long insertPoint(Point point, SQLiteDatabase db) {
         final ContentValues values = new ContentValues();
-        values.put(DbContract.PointsColumns.COLUMN_NAME, point.getName());
-        values.put(DbContract.PointsColumns.COLUMN_DESCRIPTION, point.getDescription());
-        values.put(DbContract.PointsColumns.COLUMN_LATITUDE, point.getLatitude());
-        values.put(DbContract.PointsColumns.COLUMN_LONGITUDE, point.getLongitude());
-        values.put(DbContract.PointsColumns.COLUMN_ALTITUDE, point.getAltitude());
-        final long result = db.insert(DbContract.PointsColumns.TABLE_NAME, null, values);
+        values.put(ARDbContract.PointsColumns.COLUMN_NAME, point.getName());
+        values.put(ARDbContract.PointsColumns.COLUMN_DESCRIPTION, point.getDescription());
+        values.put(ARDbContract.PointsColumns.COLUMN_LATITUDE, point.getLatitude());
+        values.put(ARDbContract.PointsColumns.COLUMN_LONGITUDE, point.getLongitude());
+        values.put(ARDbContract.PointsColumns.COLUMN_ALTITUDE, point.getAltitude());
+        final long result = db.insert(ARDbContract.PointsColumns.TABLE_NAME, null, values);
         if (result == -1) {
             if (BuildConfig.DEBUG) Log.d(TAG, "Error inserting the point: \"" + point.getName() + "\" into the database");
         }
         return result;
+    }
+
+    /**
+     * Adds the given {@link List<Point>} to the {@link SQLiteDatabase} asynchronously.
+     * @param points the {@link List<Point>} to insert.
+     * @param listener the {@link ARDbHelperListener} to notify when the operation completes.
+     * @return the number of successfully inserted rows, or -1 if an error occurred on one or many rows.
+     */
+    public void addPointsAsynchronously(List<Point> points, ARDbHelperListener listener) {
+        InsertPointsAsynchronously insertPoints = new InsertPointsAsynchronously(points, listener);
+        insertPoints.execute();
+    }
+
+    /**
+     * Insert {@link Point}s asynchronously.
+     */
+    private class InsertPointsAsynchronously extends AsyncTask<Void, Void, Void> {
+
+        private  List<Point> mPoints;
+        private ARDbHelperListener mListener;
+        private long mInsertedPointsNumber;
+
+        public InsertPointsAsynchronously (List<Point> points, ARDbHelperListener listener) {
+            mPoints = points;
+            mListener = listener;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            mInsertedPointsNumber = addPoints(mPoints);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            mListener.onPointsInserted(mInsertedPointsNumber);
+        }
     }
 }

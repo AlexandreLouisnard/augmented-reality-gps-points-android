@@ -18,8 +18,8 @@ import android.widget.Button;
 import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.R;
 import com.louisnard.augmentedreality.activities.PointsListActivity;
-import com.louisnard.augmentedreality.model.database.DbContract;
-import com.louisnard.augmentedreality.model.database.DbHelper;
+import com.louisnard.augmentedreality.model.database.ARDbContract;
+import com.louisnard.augmentedreality.model.database.ARDbHelper;
 import com.louisnard.augmentedreality.model.objects.Point;
 import com.louisnard.augmentedreality.model.services.PointService;
 
@@ -32,7 +32,7 @@ import java.util.List;
  *
  * @author Alexandre Louisnard
  */
-public class SettingsFragment extends Fragment implements View.OnClickListener {
+public class SettingsFragment extends Fragment implements View.OnClickListener, ARDbHelper.ARDbHelperListener {
 
     // Tag
     private static final String TAG = SettingsFragment.class.getSimpleName();
@@ -40,7 +40,8 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
     // Request codes
     private static final int REQUEST_PICK_GPX_FILE = 1;
     private static final int REQUEST_STORAGE_READ_WRITE_PERMISSIONS = 2;
-    private static final int REQUEST_SAVE_POINTS_IN_DB = 3;
+    private static final int REQUEST_ADD_POINTS_IN_DB_CONFIRMATION_DIALOG = 3;
+    private static final int REQUEST_ADD_POINTS_IN_DB_ASYNCHRONOUSLY = 4;
 
     // Views
     private Button mListCurrentPoints;
@@ -144,14 +145,14 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
             } else {
                 // TODO: add a checkbox in the alert dialog to ask if erase all points from DB before importing
                 AlertDialogFragment alertDialogFragment = AlertDialogFragment.newInstance(getString(R.string.gpx_parsed_alert_title), String.format(getString(R.string.gpx_parsed_alert_message), pointsNumber), android.R.string.ok, android.R.string.cancel);
-                alertDialogFragment.setTargetFragment(this, REQUEST_SAVE_POINTS_IN_DB);
+                alertDialogFragment.setTargetFragment(this, REQUEST_ADD_POINTS_IN_DB_CONFIRMATION_DIALOG);
                 alertDialogFragment.show(getFragmentManager(), AlertDialogFragment.TAG);
             }
-        } else if (REQUEST_SAVE_POINTS_IN_DB == requestCode && resultCode == Activity.RESULT_OK) {
-            final DbHelper dbHelper = DbHelper.getInstance(getContext());
-            dbHelper.clearTable(DbContract.PointsColumns.TABLE_NAME);
-            final long insertedPointsNumber = dbHelper.addPoints(mParsedPointsList);
-            if (BuildConfig.DEBUG) Log.d(TAG, "Saved " + insertedPointsNumber + " points in the database");
+        } else if (REQUEST_ADD_POINTS_IN_DB_CONFIRMATION_DIALOG == requestCode && resultCode == Activity.RESULT_OK) {
+            final ARDbHelper dbHelper = ARDbHelper.getInstance(getContext());
+            dbHelper.clearTable(ARDbContract.PointsColumns.TABLE_NAME);
+            dbHelper.addPointsAsynchronously(mParsedPointsList, this);
+            // TODO: add some progress dialog while intserting points in DB
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
@@ -170,5 +171,11 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
         chooseFile.setType("*/*");
         intent = Intent.createChooser(chooseFile, getString(R.string.gpx_pick_a_file));
         startActivityForResult(intent, REQUEST_PICK_GPX_FILE);
+    }
+
+    // ARDbHelper.ARDbHelperListener implementation
+    @Override
+    public void onPointsInserted(long insertedPointsNumber) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "Added " + insertedPointsNumber + " points in the database");
     }
 }

@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.louisnard.augmentedreality.R;
-import com.louisnard.augmentedreality.model.database.DbHelper;
+import com.louisnard.augmentedreality.model.database.ARDbHelper;
 import com.louisnard.augmentedreality.model.objects.Point;
 
 import java.util.List;
@@ -38,7 +38,7 @@ public class PointsListFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPointsList = DbHelper.getInstance(getContext()).getAllPoints();
+        mPointsList = ARDbHelper.getInstance(getContext()).getAllPoints();
     }
 
     @Nullable
@@ -108,5 +108,4 @@ public class PointsListFragment extends Fragment {
             mNameTextView = (TextView) itemView.findViewById(R.id.point_name_text_view);
         }
     }
-
 }

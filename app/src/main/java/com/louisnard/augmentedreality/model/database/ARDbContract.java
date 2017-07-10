@@ -7,13 +7,15 @@ import android.provider.BaseColumns;
  *
  * @author Alexandre Louisnard
  */
-public final class DbContract {
+public final class ARDbContract {
 
     // Private constructor to prevent accidental instantiation
-    private DbContract() {}
+    private ARDbContract() {}
 
-    // Inner class that defines the table contents.
-    public static class PointsColumns implements BaseColumns {
+    /**
+     * Columns for the points table.
+     */
+    public static final class PointsColumns implements BaseColumns {
         public static final String TABLE_NAME = "points";
         public static final String COLUMN_NAME = "name";
         public static final String COLUMN_DESCRIPTION = "description";
