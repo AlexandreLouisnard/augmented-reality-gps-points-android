@@ -1,0 +1,36 @@
+package com.louisnard.augmentedreality.activities;
+
+import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
+
+import com.louisnard.augmentedreality.R;
+import com.louisnard.augmentedreality.fragments.PointsListFragment;
+import com.louisnard.augmentedreality.model.objects.Point;
+
+/**
+ * Points list {@link AppCompatActivity} showing the list of {@link Point}s in the database.<br>
+ *
+ * @author Alexandre Louisnard
+ */
+
+public class PointsListActivity extends AppCompatActivity {
+
+    // Tag
+    private static final String TAG = PointsListActivity.class.getSimpleName();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Set layout
+        setContentView(R.layout.activity_simple_fragment);
+
+        // Set fragment
+        if (savedInstanceState == null) {
+            final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.fragment, new PointsListFragment());
+            transaction.commit();
+        }
+    }
+}

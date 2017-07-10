@@ -4,14 +4,18 @@
     <string name="app_name">Augmented Reality GPS Points</string>
     <string name="error">Error</string>
     <string name="gps">GPS</string>
+    <string name="points">Points</string>
 
     <!-- Activities -->
     <string name="activity_augmented_reality">@string/app_name</string>
     <string name="activity_settings">Augmented Reality Settings</string>
 
     <!-- Settings -->
-    <string name="settings_category_points">Points</string>
+    <string name="settings_category_points">@string/points</string>
     <string name="settings_import_gpx_file">Import GPX file into database</string>
+
+    <!-- Points -->
+    <string name="points_no_points_in_database">No points in the database.</string>
 
     <!-- GPS -->
     <string name="gps_disabled">GPS disabled</string>

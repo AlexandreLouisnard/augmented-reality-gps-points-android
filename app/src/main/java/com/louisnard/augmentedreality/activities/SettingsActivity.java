@@ -25,9 +25,6 @@ public class SettingsActivity extends AppCompatActivity {
         // Set layout
         setContentView(R.layout.activity_toolbar_simple_fragment);
 
-        // Set title
-        //setTitle(getString(R.string.settings_activity));
-
         // Set toolbar
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -36,6 +33,7 @@ public class SettingsActivity extends AppCompatActivity {
         // Set fragment
         if (savedInstanceState == null) {
             final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            // TODO: convert SettingsFragment into a PreferenceFragment
             transaction.replace(R.id.fragment, new SettingsFragment());
             transaction.commit();
         }

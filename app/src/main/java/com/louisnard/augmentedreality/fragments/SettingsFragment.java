@@ -17,6 +17,8 @@ import android.widget.Button;
 
 import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.R;
+import com.louisnard.augmentedreality.model.database.DbContract;
+import com.louisnard.augmentedreality.model.database.DbHelper;
 import com.louisnard.augmentedreality.model.objects.Point;
 import com.louisnard.augmentedreality.model.services.PointService;
 
@@ -134,14 +136,16 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
             if (pointsNumber == 0) {
                 AlertDialogFragment.newInstance(R.string.gpx_parsed_alert_title, R.string.gpx_parsed_no_points_alert_message).show(getFragmentManager(), AlertDialogFragment.TAG);
             } else {
-                // TODO: add a checkbox in the alert dialog to erase all points from DB before importing
+                // TODO: add a checkbox in the alert dialog to ask if erase all points from DB before importing
                 AlertDialogFragment alertDialogFragment = AlertDialogFragment.newInstance(getString(R.string.gpx_parsed_alert_title), String.format(getString(R.string.gpx_parsed_alert_message), pointsNumber), android.R.string.ok, android.R.string.cancel);
                 alertDialogFragment.setTargetFragment(this, REQUEST_SAVE_POINTS_IN_DB);
                 alertDialogFragment.show(getFragmentManager(), AlertDialogFragment.TAG);
             }
         } else if (REQUEST_SAVE_POINTS_IN_DB == requestCode && resultCode == Activity.RESULT_OK) {
-            if (BuildConfig.DEBUG) Log.d(TAG, "Saving " + mParsedPointsList.size() + " points in database");
-            // TODO: save points in DB
+            final DbHelper dbHelper = DbHelper.getInstance(getContext());
+            dbHelper.clearTable(DbContract.PointsColumns.TABLE_NAME);
+            final long insertedPointsNumber = dbHelper.addPoints(mParsedPointsList);
+            if (BuildConfig.DEBUG) Log.d(TAG, "Saved " + insertedPointsNumber + " points in the database");
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
