@@ -35,8 +35,6 @@ public class PointsListFragment extends Fragment {
     // Points
     private List<Point> mPointsList;
 
-    // TODO: test this points list fragment and improve it
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,7 +54,6 @@ public class PointsListFragment extends Fragment {
         // Views
         mRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         mRecyclerView.setHasFixedSize(true);
-
     }
 
     @Override
@@ -89,6 +86,7 @@ public class PointsListFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            // TODO: improve points list : sort points by distance, indicate whether they are currently displayed, indicate their distance and altitude, maybe open point detail to see its description
             ((PointViewHolder) holder).mNameTextView.setText(mPointsList.get(position).getName());
         }
 

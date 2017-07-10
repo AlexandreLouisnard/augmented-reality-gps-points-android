@@ -22,6 +22,9 @@ import java.util.List;
  */
 public class DbHelper extends SQLiteOpenHelper {
 
+    // TODO: improve database with a content provider
+    // TODO: make big operations asynchronous (such as adding many points from a GPX file)
+
     // Tag
     private static final String TAG = DbHelper.class.getSimpleName();
 
