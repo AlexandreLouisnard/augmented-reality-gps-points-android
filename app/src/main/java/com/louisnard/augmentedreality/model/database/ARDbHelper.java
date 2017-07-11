@@ -51,7 +51,8 @@ public class ARDbHelper extends SQLiteOpenHelper {
             + ARDbContract.PointsColumns.COLUMN_DESCRIPTION + " TEXT,"
             + ARDbContract.PointsColumns.COLUMN_LATITUDE + " REAL,"
             + ARDbContract.PointsColumns.COLUMN_LONGITUDE + " REAL,"
-            + ARDbContract.PointsColumns.COLUMN_ALTITUDE + " INTEGER)";
+            + ARDbContract.PointsColumns.COLUMN_ALTITUDE + " INTEGER,"
+            + "UNIQUE(" + ARDbContract.PointsColumns.COLUMN_LATITUDE + "," + ARDbContract.PointsColumns.COLUMN_LONGITUDE + "," + ARDbContract.PointsColumns.COLUMN_ALTITUDE + ") ON CONFLICT REPLACE)";
 
     /**
      * Constructs a new instance of {@link ARDbHelper}.<br>
