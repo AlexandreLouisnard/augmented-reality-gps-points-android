@@ -13,11 +13,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ProgressBar;
 
 import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.R;
 import com.louisnard.augmentedreality.activities.PointsListActivity;
+import com.louisnard.augmentedreality.activities.SettingsActivity;
 import com.louisnard.augmentedreality.model.database.ARDbContract;
 import com.louisnard.augmentedreality.model.database.ARDbHelper;
 import com.louisnard.augmentedreality.model.objects.Point;
@@ -25,6 +28,7 @@ import com.louisnard.augmentedreality.model.services.PointService;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -41,9 +45,11 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
     private static final int REQUEST_PICK_GPX_FILE = 1;
     private static final int REQUEST_STORAGE_READ_WRITE_PERMISSIONS = 2;
     private static final int REQUEST_ADD_POINTS_IN_DB_CONFIRMATION_DIALOG = 3;
-    private static final int REQUEST_ADD_POINTS_IN_DB_ASYNCHRONOUSLY = 4;
+
+    private boolean mFragmentIsPaused;
 
     // Views
+    private ProgressBar mProgressBar;
     private Button mListCurrentPoints;
     private Button mImportGpxFileButton;
 
@@ -67,6 +73,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
         super.onViewCreated(view, savedInstanceState);
 
         // Views
+        mProgressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
         mListCurrentPoints = (Button) view.findViewById(R.id.list_current_points_btn);
         mImportGpxFileButton = (Button) view.findViewById(R.id.import_gpx_file_btn);
 
@@ -78,6 +85,13 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
     @Override
     public void onResume() {
         super.onResume();
+        mFragmentIsPaused = false;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mFragmentIsPaused = true;
     }
 
     // View.OnClickListener implementation
@@ -132,7 +146,9 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
                 e.printStackTrace();
             }
 
+            // TODO: show progress while parsing
             mParsedPointsList = PointService.parseGpx(inputStream);
+
             if (mParsedPointsList == null) {
                 alertInvalidGpxFile();
                 return;
@@ -152,7 +168,9 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
             final ARDbHelper dbHelper = ARDbHelper.getInstance(getContext());
             dbHelper.clearTable(ARDbContract.PointsColumns.TABLE_NAME);
             dbHelper.addPointsAsynchronously(mParsedPointsList, this);
-            // TODO: add some progress dialog while intserting points in DB
+            // TODO: handle back button pressed while db update is pending
+            mProgressBar.setVisibility(View.VISIBLE);
+            getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
@@ -177,5 +195,12 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
     @Override
     public void onPointsInserted(long insertedPointsNumber) {
         if (BuildConfig.DEBUG) Log.d(TAG, "Added " + insertedPointsNumber + " points in the database");
+        mProgressBar.setVisibility(View.GONE);
+        if (getActivity() != null) {
+            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+        }
+        if (!mFragmentIsPaused) {
+            AlertDialogFragment.newInstance(getString(R.string.gpx_parsed_alert_title), String.format(getString(R.string.gpx_points_added_alert_message), insertedPointsNumber)).show(getFragmentManager(), AlertDialogFragment.TAG);
+        }
     }
 }
