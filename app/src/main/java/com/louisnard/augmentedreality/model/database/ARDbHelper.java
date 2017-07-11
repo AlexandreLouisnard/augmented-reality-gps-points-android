@@ -23,9 +23,6 @@ import java.util.List;
  */
 public class ARDbHelper extends SQLiteOpenHelper {
 
-    // TODO: improve database with a content provider
-    // TODO: make big operations asynchronous (such as adding many points from a GPX file)
-
     // Tag
     private static final String TAG = ARDbHelper.class.getSimpleName();
 

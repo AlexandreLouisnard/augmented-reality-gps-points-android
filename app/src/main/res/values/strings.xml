@@ -5,6 +5,7 @@
     <string name="error">Error</string>
     <string name="gps">GPS</string>
     <string name="points">Points</string>
+    <string name="confirm">Confirm</string>
 
     <!-- Activities -->
     <string name="activity_augmented_reality">@string/app_name</string>
@@ -14,6 +15,8 @@
     <!-- Settings -->
     <string name="settings_category_points">@string/points</string>
     <string name="settings_list_current_points">List current points</string>
+    <string name="settings_clear_existing_points">Clear existing points from the database</string>
+    <string name="settings_clear_existing_points_confirmation_message">You are going to delete all points from the database</string>
     <string name="settings_import_gpx_file">Import GPX file into database</string>
 
     <!-- Points -->
@@ -37,4 +40,7 @@
     <string name="gpx_parsed_alert_message">%1$d points were found. Import them ?</string>
     <string name="gpx_points_imported_alert_message">%1$d points were imported.</string>
     <string name="gpx_invalid_file_alert_message">Invalid GPX file.</string>
+    <string name="gpx_parsing">Parsing…</string>
+    <string name="gpx_importing">Importing…</string>
+
 </resources>

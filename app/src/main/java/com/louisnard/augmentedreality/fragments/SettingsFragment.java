@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.louisnard.augmentedreality.BuildConfig;
 import com.louisnard.augmentedreality.R;
@@ -43,13 +44,16 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
     // Request codes
     private static final int REQUEST_PICK_GPX_FILE = 1;
     private static final int REQUEST_STORAGE_READ_WRITE_PERMISSIONS = 2;
-    private static final int REQUEST_ADD_POINTS_IN_DB_CONFIRMATION_DIALOG = 3;
+    private static final int REQUEST_CLEAR_EXISTING_POINTS_FROM_DB = 3;
+    private static final int REQUEST_ADD_POINTS_IN_DB_CONFIRMATION_DIALOG = 4;
 
     private boolean mFragmentIsPaused;
 
     // Views
     private ProgressBar mProgressBar;
-    private Button mListCurrentPoints;
+    private TextView mProgressBarTextView;
+    private Button mListCurrentPointsButton;
+    private Button mClearExistingPointsButton;
     private Button mImportGpxFileButton;
 
     // GPX parsing
@@ -73,11 +77,14 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
 
         // Views
         mProgressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
-        mListCurrentPoints = (Button) view.findViewById(R.id.list_current_points_btn);
+        mProgressBarTextView = (TextView) view.findViewById(R.id.progress_bar_text_view);
+        mListCurrentPointsButton = (Button) view.findViewById(R.id.list_current_points_btn);
+        mClearExistingPointsButton = (Button) view.findViewById(R.id.clear_existing_points_btn);
         mImportGpxFileButton = (Button) view.findViewById(R.id.import_gpx_file_btn);
 
         // Listeners
-        mListCurrentPoints.setOnClickListener(this);
+        mListCurrentPointsButton.setOnClickListener(this);
+        mClearExistingPointsButton.setOnClickListener(this);
         mImportGpxFileButton.setOnClickListener(this);
     }
 
@@ -113,6 +120,10 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
     public void onClick(View v) {
         if (R.id.list_current_points_btn == v.getId()) {
             startActivity(new Intent(getContext(), PointsListActivity.class));
+        } else if (R.id.clear_existing_points_btn == v.getId()) {
+            AlertDialogFragment alertDialogFragment = AlertDialogFragment.newInstance(R.string.confirm, R.string.settings_clear_existing_points_confirmation_message, android.R.string.ok, android.R.string.cancel);
+            alertDialogFragment.setTargetFragment(this, REQUEST_CLEAR_EXISTING_POINTS_FROM_DB);
+            alertDialogFragment.show(getFragmentManager(), AlertDialogFragment.TAG);
         } else if (R.id.import_gpx_file_btn == v.getId()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_STORAGE_READ_WRITE_PERMISSIONS);
@@ -148,7 +159,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
                 return;
             }
 
-            // Read file and parse
+            // Read GPX file into input stream
             InputStream inputStream = null;
             try {
                 inputStream = getContext().getContentResolver().openInputStream(uri);
@@ -159,13 +170,15 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
-            showProgressBar(true);
+
+            // Parse the input stream
+            showProgressBar(true, getString(R.string.gpx_parsing));
             PointService.getInstance().parseGpxAsynchronously(inputStream, this);
+        } else if (REQUEST_CLEAR_EXISTING_POINTS_FROM_DB == requestCode && resultCode == Activity.RESULT_OK) {
+            ARDbHelper.getInstance(getContext()).clearTable(ARDbContract.PointsColumns.TABLE_NAME);
         } else if (REQUEST_ADD_POINTS_IN_DB_CONFIRMATION_DIALOG == requestCode && resultCode == Activity.RESULT_OK) {
-            final ARDbHelper dbHelper = ARDbHelper.getInstance(getContext());
-            dbHelper.clearTable(ARDbContract.PointsColumns.TABLE_NAME);
-            dbHelper.addPointsAsynchronously(mParsedPointsList, this);
-            showProgressBar(true);
+            ARDbHelper.getInstance(getContext()).addPointsAsynchronously(mParsedPointsList, this);
+            showProgressBar(true, getString(R.string.gpx_importing));
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
@@ -189,7 +202,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
     // PointService.GpxParserListener implementation
     @Override
     public void onGpxParsed(List<Point> parsedPoints) {
-        showProgressBar(false);
+        showProgressBar(false, null);
         mParsedPointsList = parsedPoints;
         if (mParsedPointsList == null) {
             alertInvalidGpxFile();
@@ -201,7 +214,6 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
         if (pointsNumber == 0) {
             AlertDialogFragment.newInstance(R.string.gpx_parsed_alert_title, R.string.gpx_parsed_no_points_alert_message).show(getFragmentManager(), AlertDialogFragment.TAG);
         } else {
-            // TODO: add a checkbox in the alert dialog to ask if erase all points from DB before importing
             AlertDialogFragment alertDialogFragment = AlertDialogFragment.newInstance(getString(R.string.gpx_parsed_alert_title), String.format(getString(R.string.gpx_parsed_alert_message), pointsNumber), android.R.string.ok, android.R.string.cancel);
             alertDialogFragment.setTargetFragment(this, REQUEST_ADD_POINTS_IN_DB_CONFIRMATION_DIALOG);
             alertDialogFragment.show(getFragmentManager(), AlertDialogFragment.TAG);
@@ -212,7 +224,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
     @Override
     public void onPointsInserted(long insertedPointsNumber) {
         if (BuildConfig.DEBUG) Log.d(TAG, "Added " + insertedPointsNumber + " points in the database");
-        showProgressBar(false);
+        showProgressBar(false, null);
         if (!mFragmentIsPaused) {
             AlertDialogFragment.newInstance(getString(R.string.gpx_parsed_alert_title), String.format(getString(R.string.gpx_points_imported_alert_message), insertedPointsNumber)).show(getFragmentManager(), AlertDialogFragment.TAG);
         }
@@ -221,16 +233,21 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
     /**
      * Shows or hides the {@link ProgressBar}.
      * @param show <b>true</b> to show the progress bar. <b>false</b> to hide it.
+     * @param message the message to display in the {@link TextView} associated to the progress bar. <b>null</b> to show the progress bar without any message or when hiding the progress bar.
      */
-    private void showProgressBar(boolean show) {
-        // TODO: add some text with it (parsing, saving...)
+    private void showProgressBar(boolean show, @Nullable String message) {
         if (show) {
             mProgressBar.setVisibility(View.VISIBLE);
+            if (message != null) {
+                mProgressBarTextView.setText(message);
+                mProgressBarTextView.setVisibility(View.VISIBLE);
+            }
             if (getActivity() != null) {
                 getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
             }
         } else {
             mProgressBar.setVisibility(View.GONE);
+            mProgressBarTextView.setVisibility(View.GONE);
             if (getActivity() != null) {
                 getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
             }

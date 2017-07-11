@@ -16,11 +16,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"/>
+    <TextView
+        android:id="@+id/progress_bar_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_gravity="center_horizontal"
+        android:textAlignment="center"/>
     <Button
         android:id="@+id/list_current_points_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/settings_list_current_points"/>
+    <Button
+        android:id="@+id/clear_existing_points_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/settings_clear_existing_points"/>
     <Button
         android:id="@+id/import_gpx_file_btn"
         android:layout_width="match_parent"
