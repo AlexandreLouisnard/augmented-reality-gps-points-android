@@ -1,9 +1,9 @@
 package com.louisnard.augmentedreality.model.services;
 
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.louisnard.augmentedreality.BuildConfig;
-import com.louisnard.augmentedreality.fragments.AugmentedRealityFragment;
 import com.louisnard.augmentedreality.model.objects.Point;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -12,7 +12,6 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedMap;
@@ -29,9 +28,27 @@ public class PointService {
     // Tag
     private static final String TAG = PointService.class.getSimpleName();
 
+    // Singleton pattern
+    private static PointService sInstance;
+
     // Constants
     // The Earth mean radius in meters
     public static final double EARTH_RADIUS = 6371000;
+
+    public interface GpxParserListener {
+        void onGpxParsed(List<Point> parsedPoints);
+    }
+
+    /**
+     * Initializes if necessary and returns the singleton instance of {@link PointService}.
+     * @return the singleton instance of {@link PointService}.
+     */
+    public static synchronized PointService getInstance() {
+        if (sInstance == null) {
+            sInstance = new PointService();
+        }
+        return sInstance;
+    }
 
     // Static helper methods
     /**
@@ -120,72 +137,107 @@ public class PointService {
     /**
      * Parses a GPX file {@link InputStream} and returns the {@link List<Point>} that it contains.
      * @param inputStream the {@link InputStream} of the GPX file.
+     * @param listener the {@link GpxParserListener} to notify when parsing has completed.
      * @return the {@link List<Point>} contained in the GPX file or <b>null</b> if the file is invalid or empty.
      */
-    public static List<Point> parseGpx(InputStream inputStream) {
-        List<Point> pointsList = new ArrayList<>();
-        try {
-            // Initialize XmlPullParser
-            final XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-            factory.setNamespaceAware(true);
-            final XmlPullParser xpp = factory.newPullParser();
-            xpp.setInput(inputStream, null);
+    public void parseGpxAsynchronously(InputStream inputStream, GpxParserListener listener) {
+        final GpxParser gpxParser = new GpxParser(inputStream, listener);
+        gpxParser.execute();
+    }
 
-            // Ensure this is a GPX file
-            int eventType = xpp.getEventType();
-            if (eventType != XmlPullParser.START_DOCUMENT) {
-                if (BuildConfig.DEBUG) Log.d(TAG, "Invalid GPX file");
-                return null;
-            }
-            eventType = xpp.next();
-            if (eventType != XmlPullParser.START_TAG || !xpp.getName().equalsIgnoreCase("gpx")) {
-                if (BuildConfig.DEBUG) Log.d(TAG, "Invalid GPX file");
-                return null;
-            }
+    /**
+     * GPX parser.
+     */
+    private class GpxParser extends AsyncTask<Void, Void, Void> {
 
-            // Parse points
-            eventType = xpp.next();
-            Point temporaryPoint = null;
-            String currentTag = null;
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-                if (eventType == XmlPullParser.START_TAG
-                        && xpp.getName().equalsIgnoreCase("wpt")) {
-                    // <wpt>: create a new Point
-                    temporaryPoint = new Point();
-                    temporaryPoint.setLatitude(Double.parseDouble(xpp.getAttributeValue(null, "lat")));
-                    temporaryPoint.setLongitude(Double.parseDouble(xpp.getAttributeValue(null, "lon")));
-                } else if (eventType == XmlPullParser.END_TAG
-                        && xpp.getName().equalsIgnoreCase("wpt")) {
-                    // </wpt>: add the new Point to the list
-                    if (temporaryPoint != null && temporaryPoint.isValid()) {
-                        pointsList.add(temporaryPoint);
-                    }
-                    temporaryPoint = null;
-                } else if (eventType == XmlPullParser.START_TAG
-                        && (xpp.getName().equalsIgnoreCase("name") || xpp.getName().equalsIgnoreCase("ele") || xpp.getName().equalsIgnoreCase("desc"))) {
-                    // <name> or <ele> or <desc>
-                    currentTag = xpp.getName();
-                } else if (eventType == XmlPullParser.END_TAG
-                        && (xpp.getName().equalsIgnoreCase("name") || xpp.getName().equalsIgnoreCase("ele") || xpp.getName().equalsIgnoreCase("desc"))) {
-                    // </name> or </ele> or </desc>
-                    currentTag = null;
-                } else if (eventType == XmlPullParser.TEXT) {
-                    // Text node
-                    if (currentTag != null && temporaryPoint != null) {
-                        if (currentTag.equals("name")) {
-                            temporaryPoint.setName(xpp.getText());
-                        } else if (currentTag.equals("ele")) {
-                            temporaryPoint.setAltitude((int) Double.parseDouble(xpp.getText()));
-                        } else if (currentTag.equals("desc")) {
-                            temporaryPoint.setDescription(xpp.getText());
-                        }
-                    }
+        // GPX input stram
+        private InputStream mInputStream;
+        // Parsed points list
+        private List<Point> mPointsList;
+        // Listener
+        private GpxParserListener mListener;
+
+        /**
+         * Parses a GPX file {@link InputStream} and generates the {@link List<Point>} that it contains.
+         * @param inputStream the {@link InputStream} of the GPX file.
+         * @param listener the {@link GpxParserListener} to notify when parsing has completed.
+         */
+        public GpxParser(InputStream inputStream, GpxParserListener listener) {
+            mInputStream = inputStream;
+            mListener = listener;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                // Initialize XmlPullParser
+                final XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+                factory.setNamespaceAware(true);
+                final XmlPullParser xpp = factory.newPullParser();
+                xpp.setInput(mInputStream, null);
+
+                // Ensure this is a GPX file
+                int eventType = xpp.getEventType();
+                if (eventType != XmlPullParser.START_DOCUMENT) {
+                    if (BuildConfig.DEBUG) Log.d(TAG, "Invalid GPX file");
+                    return null;
                 }
                 eventType = xpp.next();
+                if (eventType != XmlPullParser.START_TAG || !xpp.getName().equalsIgnoreCase("gpx")) {
+                    if (BuildConfig.DEBUG) Log.d(TAG, "Invalid GPX file");
+                    return null;
+                }
+
+                // Parse points
+                mPointsList = new ArrayList<>();
+                eventType = xpp.next();
+                Point temporaryPoint = null;
+                String currentTag = null;
+                while (eventType != XmlPullParser.END_DOCUMENT) {
+                    if (eventType == XmlPullParser.START_TAG
+                            && xpp.getName().equalsIgnoreCase("wpt")) {
+                        // <wpt>: create a new Point
+                        temporaryPoint = new Point();
+                        temporaryPoint.setLatitude(Double.parseDouble(xpp.getAttributeValue(null, "lat")));
+                        temporaryPoint.setLongitude(Double.parseDouble(xpp.getAttributeValue(null, "lon")));
+                    } else if (eventType == XmlPullParser.END_TAG
+                            && xpp.getName().equalsIgnoreCase("wpt")) {
+                        // </wpt>: add the new Point to the list
+                        if (temporaryPoint != null && temporaryPoint.isValid()) {
+                            mPointsList.add(temporaryPoint);
+                        }
+                        temporaryPoint = null;
+                    } else if (eventType == XmlPullParser.START_TAG
+                            && (xpp.getName().equalsIgnoreCase("name") || xpp.getName().equalsIgnoreCase("ele") || xpp.getName().equalsIgnoreCase("desc"))) {
+                        // <name> or <ele> or <desc>
+                        currentTag = xpp.getName();
+                    } else if (eventType == XmlPullParser.END_TAG
+                            && (xpp.getName().equalsIgnoreCase("name") || xpp.getName().equalsIgnoreCase("ele") || xpp.getName().equalsIgnoreCase("desc"))) {
+                        // </name> or </ele> or </desc>
+                        currentTag = null;
+                    } else if (eventType == XmlPullParser.TEXT) {
+                        // Text node
+                        if (currentTag != null && temporaryPoint != null) {
+                            if (currentTag.equals("name")) {
+                                temporaryPoint.setName(xpp.getText());
+                            } else if (currentTag.equals("ele")) {
+                                temporaryPoint.setAltitude((int) Double.parseDouble(xpp.getText()));
+                            } else if (currentTag.equals("desc")) {
+                                temporaryPoint.setDescription(xpp.getText());
+                            }
+                        }
+                    }
+                    eventType = xpp.next();
+                }
+            } catch (XmlPullParserException | IOException e) {
+                e.printStackTrace();
             }
-        } catch (XmlPullParserException | IOException e) {
-            e.printStackTrace();
+            return null;
         }
-        return pointsList;
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            mListener.onGpxParsed(mPointsList);
+        }
     }
 }

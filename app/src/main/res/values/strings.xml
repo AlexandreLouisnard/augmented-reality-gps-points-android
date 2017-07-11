@@ -35,6 +35,6 @@
     <string name="gpx_parsed_alert_title">GPX parsed</string>
     <string name="gpx_parsed_no_points_alert_message">No points were found.</string>
     <string name="gpx_parsed_alert_message">%1$d points were found. Import them ?</string>
-    <string name="gpx_points_added_alert_message">%1$d points were added to the database.</string>
+    <string name="gpx_points_imported_alert_message">%1$d points were imported.</string>
     <string name="gpx_invalid_file_alert_message">Invalid GPX file.</string>
 </resources>

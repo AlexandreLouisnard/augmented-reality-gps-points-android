@@ -1,6 +1,7 @@
 package com.louisnard.augmentedreality.activities;
 
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -15,8 +16,21 @@ import com.louisnard.augmentedreality.fragments.SettingsFragment;
  */
 public class SettingsActivity extends AppCompatActivity {
 
+    /**
+     * On back button pressed listener interface.
+     */
+    public interface BackButtonListener {
+        /**
+         * Callback method invoked when the back button is pressed.
+         * @return <b>false</b> to prevent back navigation. <b>true</b> to allow it.
+         */
+        public boolean onBackPressed();
+    }
+
     // Tag
     private static final String TAG = SettingsActivity.class.getSimpleName();
+
+    private BackButtonListener mBackButtonListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,5 +50,22 @@ public class SettingsActivity extends AppCompatActivity {
             transaction.replace(R.id.fragment, new SettingsFragment());
             transaction.commit();
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mBackButtonListener != null && !mBackButtonListener.onBackPressed()) {
+            return;
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    /**
+     * Sets the {@link BackButtonListener} for this activity.
+     * @param listener the {@link BackButtonListener}.
+     */
+    public void setOnBackPressedListener(BackButtonListener listener) {
+        mBackButtonListener = listener;
     }
 }

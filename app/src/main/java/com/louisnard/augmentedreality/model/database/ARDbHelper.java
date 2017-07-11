@@ -234,7 +234,7 @@ public class ARDbHelper extends SQLiteOpenHelper {
      */
     private class InsertPointsAsynchronously extends AsyncTask<Void, Void, Void> {
 
-        private  List<Point> mPoints;
+        private List<Point> mPoints;
         private ARDbHelperListener mListener;
         private long mInsertedPointsNumber;
 
