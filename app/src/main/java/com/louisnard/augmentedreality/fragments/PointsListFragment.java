@@ -86,7 +86,6 @@ public class PointsListFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            // TODO: improve points list : sort points by distance, indicate whether they are currently displayed, indicate their distance and altitude, maybe open point detail to see its description
             ((PointViewHolder) holder).mNameTextView.setText(mPointsList.get(position).getName());
         }
 

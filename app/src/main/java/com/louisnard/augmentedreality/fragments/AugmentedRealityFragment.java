@@ -43,6 +43,8 @@ import java.util.List;
  */
 public class AugmentedRealityFragment extends CameraPreviewFragment implements LocationListener, Compass.CompassListener, View.OnClickListener {
 
+    // TODO: use this library to build "Mountain Peaks - France"
+    // TODO: solve crash bug with camera lock opening
     // Tag
     private static final String TAG = AugmentedRealityFragment.class.getSimpleName();
     private static final String TAG_ALERT_DIALOG_ENABLE_GPS = AlertDialogFragment.TAG + "_ENABLE_GPS";
