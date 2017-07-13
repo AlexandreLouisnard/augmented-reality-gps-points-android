@@ -21,6 +21,7 @@
 
     <!-- Points -->
     <string name="points_no_points_in_database">No points in the database.</string>
+    <string name="points_view_display_information">%1$s\n%2$dm\n%3$dkm</string>
 
     <!-- GPS -->
     <string name="gps_disabled">GPS disabled</string>

@@ -6,6 +6,9 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -49,17 +52,19 @@ public class PointsView extends View {
     private float mVerticalPixelsPerDegree;
 
     // Drawing
-    private final Paint mTextPaint;
+    private final TextPaint mTextPaint;
+    private String mPointText;
 
     public PointsView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         // Paint
-        mTextPaint = new Paint();
+        mTextPaint = new TextPaint();
         mTextPaint.setColor(Color.BLACK);
         mTextPaint.setTextAlign(Paint.Align.CENTER);
         mTextPaint.setStrokeWidth(2);
         mTextPaint.setTextSize(25);
         mTextPaint.setStyle(Paint.Style.STROKE);
+        mPointText = context.getString(R.string.points_view_display_information);
     }
 
     /**
@@ -137,10 +142,17 @@ public class PointsView extends View {
             for (SortedMap.Entry<Float, Point> entry : mPoints.entrySet()) {
                 final int[] xy = getPixelCoordinates(entry.getKey(), mUserPoint.verticalAngleTo(entry.getValue()));
                 if (xy != null) {
+                    // Draw arrow
                     final Drawable drawable = getResources().getDrawable(R.drawable.ic_arrow_drop_down_24dp, null);
                     drawable.setBounds(xy[0] - ARROW_SIZE/2, xy[1] - ARROW_SIZE, xy[0] + ARROW_SIZE/2, xy[1]);
                     drawable.draw(canvas);
-                    canvas.drawText(entry.getValue().getName() + "; " + entry.getKey() + "°; " + mUserPoint.distanceTo(entry.getValue()) + "m", xy[0], xy[1] - ARROW_SIZE, mTextPaint);
+                    // Draw text
+                    final String pointText = String.format(mPointText, entry.getValue().getName(), entry.getValue().getAltitude(), mUserPoint.distanceTo(entry.getValue()));
+                    final StaticLayout mTextLayout = new StaticLayout(pointText, mTextPaint, canvas.getWidth(), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+                    canvas.save();
+                    canvas.translate(xy[0], xy[1] - ARROW_SIZE - 50);
+                    mTextLayout.draw(canvas);
+                    canvas.restore();
                 }
             }
         }
