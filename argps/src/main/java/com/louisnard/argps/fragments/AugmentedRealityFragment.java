@@ -49,6 +49,9 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
     private static final String TAG = AugmentedRealityFragment.class.getSimpleName();
     private static final String TAG_ALERT_DIALOG_ENABLE_GPS = AlertDialogFragment.TAG + "_ENABLE_GPS";
 
+    // Permissions
+    private boolean mHasPermissions;
+
     // Request codes
     private static final int REQUEST_PERMISSIONS = TAG.hashCode() & 0xfffffff + 1;
     private static final int REQUEST_ENABLE_GPS = TAG.hashCode() & 0xfffffff + 2;
@@ -104,18 +107,19 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mHasPermissions = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED;
+
         // Check permissions
-        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+        if (!mHasPermissions) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA}, REQUEST_PERMISSIONS);
             }
             if (BuildConfig.DEBUG) Log.d(TAG, "Missing permissions");
-            return;
+        } else {
+            // Compass
+            mCompass = Compass.newInstance(getContext(), this);
         }
-
-        // Compass
-        mCompass = Compass.newInstance(getContext(), this);
     }
 
     @Nullable
@@ -144,37 +148,42 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
     public void onResume() {
         super.onResume();
 
-        // GPS location listener
-        mLocationManager = (LocationManager) getActivity().getSystemService(Activity.LOCATION_SERVICE);
-        try {
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_INTERVAL_BETWEEN_LOCATION_UPDATES, 5, this);
-        } catch (SecurityException e) {
-            if (BuildConfig.DEBUG) Log.d(TAG, "Missing location permission");
-            e.printStackTrace();
+        if (mHasPermissions) {
+            // GPS location listener
+            mLocationManager = (LocationManager) getActivity().getSystemService(Activity.LOCATION_SERVICE);
+            try {
+                mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_INTERVAL_BETWEEN_LOCATION_UPDATES, 5, this);
+            } catch (SecurityException e) {
+                if (BuildConfig.DEBUG) Log.d(TAG, "Missing location permission");
+                e.printStackTrace();
+            }
+
+            // Check GPS status
+            updateGpsStatus();
+
+            // Dump database for debug use only
+            if (BuildConfig.DEBUG) {
+                DevUtils.exportDatabaseToExternalStorage(getActivity(), ARDbHelper.getDbName());
+            }
+
+            // Start compass
+            if (mCompass != null)
+                mCompass.start(MIN_AZIMUTH_DIFFERENCE_BETWEEN_COMPASS_UPDATES, MIN_VERTICAL_INCLINATION_DIFFERENCE_BETWEEN_COMPASS_UPDATES, MIN_HORIZONTAL_INCLINATION_DIFFERENCE_BETWEEN_COMPASS_UPDATES);
+
+            // Start GPS updated checks
+            mCheckGpsHandler.postDelayed(mCheckGpsRunnable, 1000);
         }
-
-        // Check GPS status
-        updateGpsStatus();
-
-        // Dump database for debug use only
-        if (BuildConfig.DEBUG) {
-            DevUtils.exportDatabaseToExternalStorage(getActivity(), ARDbHelper.getDbName());
-        }
-
-        // Start compass
-        if (mCompass != null) mCompass.start(MIN_AZIMUTH_DIFFERENCE_BETWEEN_COMPASS_UPDATES, MIN_VERTICAL_INCLINATION_DIFFERENCE_BETWEEN_COMPASS_UPDATES, MIN_HORIZONTAL_INCLINATION_DIFFERENCE_BETWEEN_COMPASS_UPDATES);
-
-        // Start GPS updated checks
-        mCheckGpsHandler.postDelayed(mCheckGpsRunnable, 1000);
     }
 
 
 
     @Override
     public void onPause() {
-        // Stop GPS updated checks and listener
-        mCheckGpsHandler.removeCallbacks(mCheckGpsRunnable);
-        mLocationManager.removeUpdates(this);
+        if (mHasPermissions) {
+            // Stop GPS updated checks and listener
+            mCheckGpsHandler.removeCallbacks(mCheckGpsRunnable);
+            mLocationManager.removeUpdates(this);
+        }
 
         super.onPause();
 
@@ -270,11 +279,10 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_PERMISSIONS) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getActivity().recreate();
-            } else {
-                getActivity().recreate();
+            if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                if (BuildConfig.DEBUG) Log.d(TAG, "onRequestPermissionsResult(): missing permissions");
             }
+            getActivity().recreate();
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }

@@ -3,7 +3,6 @@
     <!-- Generic strings -->
     <string name="error">Error</string>
     <string name="gps">GPS</string>
-    <string name="points">Points</string>
     <string name="confirm">Confirm</string>
 
     <!-- Activities -->
@@ -12,14 +11,12 @@
     <string name="activity_points_list">Points list</string>
 
     <!-- Settings -->
-    <string name="settings_category_points">@string/points</string>
     <string name="settings_list_current_points">List current points</string>
     <string name="settings_clear_existing_points">Clear existing points from the database</string>
     <string name="settings_clear_existing_points_confirmation_message">You are going to delete all points from the database</string>
     <string name="settings_import_gpx_file">Import GPX file into database</string>
 
     <!-- Points -->
-    <string name="points_no_points_in_database">No points in the database.</string>
     <string name="points_view_display_information">%1$s\n%2$dm\n%3$dkm</string>
 
     <!-- GPS -->

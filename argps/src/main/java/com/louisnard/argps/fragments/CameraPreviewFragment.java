@@ -55,6 +55,9 @@ public abstract class CameraPreviewFragment extends Fragment {
     // Tag
     private static final String TAG = CameraPreviewFragment.class.getSimpleName();
 
+    // Permissions
+    private boolean mHasPermissions;
+
     // Request codes
     private static final int REQUEST_CAMERA_PERMISSION = TAG.hashCode() & 0xfffffff + 1;
 
@@ -101,16 +104,18 @@ public abstract class CameraPreviewFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+        mHasPermissions = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+
+        if (!mHasPermissions) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
             }
             if (BuildConfig.DEBUG) Log.d(TAG, "Missing camera permission");
             return;
+        } else {
+            mCameraId = getBackCameraId();
+            mCameraHardwareAnglesOfView = getCameraAnglesOfView();
         }
-
-        mCameraId = getBackCameraId();
-        mCameraHardwareAnglesOfView = getCameraAnglesOfView();
     }
 
     @Override
@@ -127,33 +132,36 @@ public abstract class CameraPreviewFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        startBackgroundThread();
+        if (mHasPermissions) {
 
-        // When the screen is turned off and turned back on, the SurfaceTexture is already available, and "onSurfaceTextureAvailable" will not be called
-        // In that case, we can open a camera and start preview from here (otherwise, we wait until the surface is ready in the SurfaceTextureListener)
-        if (mTextureView.isAvailable()) {
-            openCamera(mTextureView.getWidth(), mTextureView.getHeight());
-        } else {
-            mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+            startBackgroundThread();
+
+            // When the screen is turned off and turned back on, the SurfaceTexture is already available, and "onSurfaceTextureAvailable" will not be called
+            // In that case, we can open a camera and start preview from here (otherwise, we wait until the surface is ready in the SurfaceTextureListener)
+            if (mTextureView.isAvailable()) {
+                openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+            } else {
+                mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+            }
         }
     }
 
     @Override
     public void onPause() {
-        closeCamera();
-        stopBackgroundThread();
+        if (mHasPermissions) {
+            closeCamera();
+            stopBackgroundThread();
+        }
         super.onPause();
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
-            if (grantResults.length != 1 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                if (BuildConfig.DEBUG) Log.d(TAG, "Missing camera permissions");
-                getActivity().recreate();
-            } else {
-                getActivity().recreate();
+            if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                if (BuildConfig.DEBUG) Log.d(TAG, "onRequestPermissionsResult(): missing camera permission");
             }
+            getActivity().recreate();
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
