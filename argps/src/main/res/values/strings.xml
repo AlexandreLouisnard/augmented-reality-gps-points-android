@@ -1,0 +1,46 @@
+<resources>
+
+    <!-- Generic strings -->
+    <string name="error">Error</string>
+    <string name="gps">GPS</string>
+    <string name="points">Points</string>
+    <string name="confirm">Confirm</string>
+
+    <!-- Activities -->
+    <string name="activity_augmented_reality">Augmented Reality GPS Points</string>
+    <string name="activity_settings">Augmented Reality Settings</string>
+    <string name="activity_points_list">Points list</string>
+
+    <!-- Settings -->
+    <string name="settings_category_points">@string/points</string>
+    <string name="settings_list_current_points">List current points</string>
+    <string name="settings_clear_existing_points">Clear existing points from the database</string>
+    <string name="settings_clear_existing_points_confirmation_message">You are going to delete all points from the database</string>
+    <string name="settings_import_gpx_file">Import GPX file into database</string>
+
+    <!-- Points -->
+    <string name="points_no_points_in_database">No points in the database.</string>
+    <string name="points_view_display_information">%1$s\n%2$dm\n%3$dkm</string>
+
+    <!-- GPS -->
+    <string name="gps_disabled">GPS disabled</string>
+    <string name="gps_disabled_alert_message">Your device GPS is currently disabled. Please enable it.</string>
+    <string name="gps_waiting_for_location">Waiting for\nGPS location…</string>
+    <string name="gps_updated_seconds_ago">GPS updated\n%1$ds ago</string>
+    <string name="gps_your_location">Your location</string>
+
+    <!-- Orientation -->
+    <string name="orientation_pitch_degrees">Pitch\n%1$.0f °</string>
+    <string name="orientation_roll_degrees">Roll\n%1$.0f °</string>
+
+    <!-- GPX -->
+    <string name="gpx_pick_a_file">Pick a GPX file</string>
+    <string name="gpx_parsed_alert_title">GPX parsed</string>
+    <string name="gpx_parsed_no_points_alert_message">No points were found.</string>
+    <string name="gpx_parsed_alert_message">%1$d points were found. Import them ?</string>
+    <string name="gpx_points_imported_alert_message">%1$d points were imported.</string>
+    <string name="gpx_invalid_file_alert_message">Invalid GPX file.</string>
+    <string name="gpx_parsing">Parsing…</string>
+    <string name="gpx_importing">Importing…</string>
+
+</resources>
