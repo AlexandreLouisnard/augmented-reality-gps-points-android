@@ -48,6 +48,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Abstract fragment showing a camera preview in a texture view using Camera2 API.<br>
  *
+ * Requires Manifest.permission.CAMERA permission.
+ *
  * @author Alexandre Louisnard
  */
 public abstract class CameraPreviewFragment extends Fragment {
@@ -57,9 +59,6 @@ public abstract class CameraPreviewFragment extends Fragment {
 
     // Permissions
     private boolean mHasPermissions;
-
-    // Request codes
-    private static final int REQUEST_CAMERA_PERMISSION = TAG.hashCode() & 0xfffffff + 1;
 
     // Threads
     // An additional thread for running tasks that shouldn't block the UI
@@ -105,14 +104,7 @@ public abstract class CameraPreviewFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         mHasPermissions = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
-
-        if (!mHasPermissions) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
-            }
-            if (BuildConfig.DEBUG) Log.d(TAG, "Missing camera permission");
-            return;
-        } else {
+        if (mHasPermissions) {
             mCameraId = getBackCameraId();
             mCameraHardwareAnglesOfView = getCameraAnglesOfView();
         }
@@ -133,7 +125,6 @@ public abstract class CameraPreviewFragment extends Fragment {
         super.onResume();
 
         if (mHasPermissions) {
-
             startBackgroundThread();
 
             // When the screen is turned off and turned back on, the SurfaceTexture is already available, and "onSurfaceTextureAvailable" will not be called
@@ -153,18 +144,6 @@ public abstract class CameraPreviewFragment extends Fragment {
             stopBackgroundThread();
         }
         super.onPause();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_CAMERA_PERMISSION) {
-            if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                if (BuildConfig.DEBUG) Log.d(TAG, "onRequestPermissionsResult(): missing camera permission");
-            }
-            getActivity().recreate();
-        } else {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
     }
 
     // TextureView listener

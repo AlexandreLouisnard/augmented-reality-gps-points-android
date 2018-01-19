@@ -27,6 +27,7 @@ import com.louisnard.argps.BuildConfig;
 import com.louisnard.argps.debug.DevUtils;
 import com.louisnard.argps.R;
 import com.louisnard.argps.activities.SettingsActivity;
+import com.louisnard.argps.model.Utils;
 import com.louisnard.argps.model.database.ARDbHelper;
 import com.louisnard.argps.model.objects.Point;
 import com.louisnard.argps.model.services.Compass;
@@ -38,6 +39,8 @@ import java.util.List;
 
 /**
  * Fragment showing the points around the user location using augmented reality over a camera preview.<br>
+ *
+ * Requires Manifest.permission.CAMERA and Manifest.permission.ACCESS_FINE_LOCATION permissions.
  *
  * @author Alexandre Louisnard
  */
@@ -51,10 +54,13 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
 
     // Permissions
     private boolean mHasPermissions;
+    private String[] REQUIRED_PERMISSIONS = new String[]{
+            Manifest.permission.CAMERA,
+            Manifest.permission.ACCESS_FINE_LOCATION};
 
     // Request codes
-    private static final int REQUEST_PERMISSIONS = TAG.hashCode() & 0xfffffff + 1;
-    private static final int REQUEST_ENABLE_GPS = TAG.hashCode() & 0xfffffff + 2;
+    private static final int REQUEST_PERMISSIONS = (TAG.hashCode() & 0x0000ffff) - 1;
+    private static final int REQUEST_ENABLE_GPS = (TAG.hashCode() & 0x0000ffff) - 2;
 
     // Constants
     // The minimum distance the user must have moved from its previous location to recalculate azimuths and distances, in meters
@@ -107,15 +113,11 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mHasPermissions = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+        mHasPermissions = Utils.hasPermissions(getContext(), REQUIRED_PERMISSIONS);
 
         // Check permissions
         if (!mHasPermissions) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA}, REQUEST_PERMISSIONS);
-            }
-            if (BuildConfig.DEBUG) Log.d(TAG, "Missing permissions");
+            requestPermissions(REQUIRED_PERMISSIONS, REQUEST_PERMISSIONS);
         } else {
             // Compass
             mCompass = Compass.newInstance(getContext(), this);
@@ -133,12 +135,12 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
         super.onViewCreated(view, savedInstanceState);
 
         // Views
-        mPointsView = (PointsView) view.findViewById(R.id.points_view);
-        mSettingsButton = (ImageButton) view.findViewById(R.id.settings_btn);
-        mCompassView = (CompassView) view.findViewById(R.id.compass_view);
-        mGpsStatusTextView = (TextView) view.findViewById(R.id.gps_status_text_view);
-        mVerticalInclinationTextView = (TextView) view.findViewById(R.id.pitch_text_view);
-        mHorizontalInclinationTextView = (TextView) view.findViewById(R.id.roll_text_view);
+        mPointsView = view.findViewById(R.id.points_view);
+        mSettingsButton = view.findViewById(R.id.settings_btn);
+        mCompassView = view.findViewById(R.id.compass_view);
+        mGpsStatusTextView = view.findViewById(R.id.gps_status_text_view);
+        mVerticalInclinationTextView = view.findViewById(R.id.pitch_text_view);
+        mHorizontalInclinationTextView = view.findViewById(R.id.roll_text_view);
 
         // Set listeners
         mSettingsButton.setOnClickListener(this);
@@ -176,7 +178,6 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
     }
 
 
-
     @Override
     public void onPause() {
         if (mHasPermissions) {
@@ -187,8 +188,10 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
 
         super.onPause();
 
-        // Stop compass
-        if (mCompass != null) mCompass.stop();
+        if (mHasPermissions) {
+            // Stop compass
+            if (mCompass != null) mCompass.stop();
+        }
     }
 
     // CameraPreviewFragment implementation
@@ -201,7 +204,8 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
     protected void onCameraPreviewReady(float[] cameraPreviewAnglesOfView) {
         // Set camera angles
         if (cameraPreviewAnglesOfView != null) {
-            if (BuildConfig.DEBUG) Log.d(TAG, "Configuring PointsView with camera angles (horizontal x vertical): " + cameraPreviewAnglesOfView[0] + "° x " + cameraPreviewAnglesOfView[1] + "°");
+            if (BuildConfig.DEBUG)
+                Log.d(TAG, "Configuring PointsView with camera angles (horizontal x vertical): " + cameraPreviewAnglesOfView[0] + "° x " + cameraPreviewAnglesOfView[1] + "°");
             mPointsView.setCameraAngles(cameraPreviewAnglesOfView[0], cameraPreviewAnglesOfView[1]);
         }
     }
@@ -234,12 +238,14 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
                 mUserLocationAtLastDbReading = location;
                 final ARDbHelper dbHelper = ARDbHelper.getInstance(getActivity().getApplicationContext());
                 mPoints = dbHelper.getPointsAround(location, MAX_RADIUS_DISTANCE_TO_SEARCH_POINTS_AROUND);
-                if (BuildConfig.DEBUG) Log.d(TAG, "Found " + mPoints.size() + " points in the database around the new user location");
+                if (BuildConfig.DEBUG)
+                    Log.d(TAG, "Found " + mPoints.size() + " points in the database around the new user location");
             }
 
             // Update user location and recalculate relative azimuths of points from the new user location
             if (mUserLocationPoint == null || mUserLocationPoint.distanceTo(location) > MIN_DISTANCE_DIFFERENCE_BETWEEN_RECALCULATIONS) {
-                if (BuildConfig.DEBUG) Log.d(TAG, "Recalculating points azimuth from the new user location");
+                if (BuildConfig.DEBUG)
+                    Log.d(TAG, "Recalculating points azimuth from the new user location");
                 mUserLocationPoint = new Point(getString(R.string.gps_your_location), location);
                 // Update points view
                 mPointsView.setPoints(mUserLocationPoint, PointService.sortPointsByRelativeAzimuth(mUserLocationPoint, mPoints));
@@ -279,10 +285,11 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_PERMISSIONS) {
-            if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                if (BuildConfig.DEBUG) Log.d(TAG, "onRequestPermissionsResult(): missing permissions");
+            if (Utils.hasPermissions(getContext(), REQUIRED_PERMISSIONS)) {
+                getActivity().recreate();
+            } else {
+                getActivity().finish();
             }
-            getActivity().recreate();
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
