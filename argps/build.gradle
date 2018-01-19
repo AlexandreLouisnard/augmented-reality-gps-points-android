@@ -1,4 +1,8 @@
 apply plugin: 'com.android.library'
+// To build and publish on Jitpack
+apply plugin: 'com.github.dcendents.android-maven'
+group='com.github.AlexandreLouisnard'
+
 
 android {
     compileSdkVersion 26
