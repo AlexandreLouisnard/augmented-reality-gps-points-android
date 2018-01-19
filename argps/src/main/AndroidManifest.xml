@@ -12,9 +12,7 @@
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
-    <application
-        android:allowBackup="false"
-        android:supportsRtl="false">
+    <application>
 
         <activity android:name="com.louisnard.argps.activities.AugmentedRealityActivity"
             android:label="@string/activity_augmented_reality"
