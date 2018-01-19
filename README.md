@@ -12,7 +12,30 @@ Show points with GPS localization on the device camera preview.
 * Import GPX files.
 
 ## USAGE
-See Javadoc.
+**argps**: the library  
+**argpsapp** module: a sample application
+
+### Library usage :
+**Gradle dependency**  
+
+* Add the following to your project level `build.gradle`:
+```gradle
+allprojects {
+	repositories {
+		maven { url "https://jitpack.io" }
+	}
+}
+```
+* Add this to your app `build.gradle`:
+```gradle
+dependencies {
+    compile 'com.github.AlexandreLouisnard:android-augmented-reality-gps-points:master-SNAPSHOT'
+}
+```
+
+You can extend AugmentedRealityActivity to get a simple example.
+
+See JAVADOC for the rest.
 
 ## CHANGELOG
 

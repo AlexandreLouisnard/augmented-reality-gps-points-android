@@ -3,30 +3,24 @@ package com.louisnard.argps.fragments;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.louisnard.argps.BuildConfig;
-import com.louisnard.argps.debug.DevUtils;
 import com.louisnard.argps.R;
-import com.louisnard.argps.activities.SettingsActivity;
+import com.louisnard.argps.debug.DevUtils;
 import com.louisnard.argps.model.Utils;
 import com.louisnard.argps.model.database.ARDbHelper;
 import com.louisnard.argps.model.objects.Point;
@@ -44,7 +38,7 @@ import java.util.List;
  *
  * @author Alexandre Louisnard
  */
-public class AugmentedRealityFragment extends CameraPreviewFragment implements LocationListener, Compass.CompassListener, View.OnClickListener {
+public class AugmentedRealityFragment extends CameraPreviewFragment implements LocationListener, Compass.CompassListener {
 
     // TODO: use this library to build "Mountain Peaks - France"
     // TODO: solve crash bug with camera lock opening
@@ -92,7 +86,6 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
 
     // Views
     private PointsView mPointsView;
-    private ImageButton mSettingsButton;
     private CompassView mCompassView;
     private TextView mGpsStatusTextView;
     private TextView mVerticalInclinationTextView;
@@ -136,14 +129,10 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
 
         // Views
         mPointsView = view.findViewById(R.id.points_view);
-        mSettingsButton = view.findViewById(R.id.settings_btn);
         mCompassView = view.findViewById(R.id.compass_view);
         mGpsStatusTextView = view.findViewById(R.id.gps_status_text_view);
         mVerticalInclinationTextView = view.findViewById(R.id.pitch_text_view);
         mHorizontalInclinationTextView = view.findViewById(R.id.roll_text_view);
-
-        // Set listeners
-        mSettingsButton.setOnClickListener(this);
     }
 
     @Override
@@ -317,15 +306,6 @@ public class AugmentedRealityFragment extends CameraPreviewFragment implements L
                     mPointsView.setPoints(null, null);
                 }
             }
-        }
-    }
-
-    // View.OnClickListener implementation
-    @Override
-    public void onClick(View v) {
-        if (R.id.settings_btn == v.getId()) {
-            final Intent intent = new Intent(getContext(), SettingsActivity.class);
-            startActivity(intent);
         }
     }
 

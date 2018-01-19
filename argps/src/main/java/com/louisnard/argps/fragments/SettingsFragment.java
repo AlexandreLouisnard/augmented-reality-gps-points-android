@@ -22,6 +22,7 @@ import com.louisnard.argps.BuildConfig;
 import com.louisnard.argps.R;
 import com.louisnard.argps.activities.PointsListActivity;
 import com.louisnard.argps.activities.SettingsActivity;
+import com.louisnard.argps.model.Utils;
 import com.louisnard.argps.model.database.ARDbContract;
 import com.louisnard.argps.model.database.ARDbHelper;
 import com.louisnard.argps.model.objects.Point;
@@ -41,9 +42,14 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
     // Tag
     private static final String TAG = SettingsFragment.class.getSimpleName();
 
+    // Permissions
+    private static final String[] REQUIRED_PERMISSIONS = new String[]{
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            android.Manifest.permission.READ_EXTERNAL_STORAGE};
+
     // Request codes
     private static final int REQUEST_PICK_GPX_FILE = 1;
-    private static final int REQUEST_STORAGE_READ_WRITE_PERMISSIONS = 2;
+    private static final int REQUEST_PERMISSIONS = 2;
     private static final int REQUEST_CLEAR_EXISTING_POINTS_FROM_DB = 3;
     private static final int REQUEST_ADD_POINTS_IN_DB_CONFIRMATION_DIALOG = 4;
 
@@ -76,11 +82,11 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
         super.onViewCreated(view, savedInstanceState);
 
         // Views
-        mProgressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
-        mProgressBarTextView = (TextView) view.findViewById(R.id.progress_bar_text_view);
-        mListCurrentPointsButton = (Button) view.findViewById(R.id.list_current_points_btn);
-        mClearExistingPointsButton = (Button) view.findViewById(R.id.clear_existing_points_btn);
-        mImportGpxFileButton = (Button) view.findViewById(R.id.import_gpx_file_btn);
+        mProgressBar = view.findViewById(R.id.progress_bar);
+        mProgressBarTextView = view.findViewById(R.id.progress_bar_text_view);
+        mListCurrentPointsButton = view.findViewById(R.id.list_current_points_btn);
+        mClearExistingPointsButton = view.findViewById(R.id.clear_existing_points_btn);
+        mImportGpxFileButton = view.findViewById(R.id.import_gpx_file_btn);
 
         // Listeners
         mListCurrentPointsButton.setOnClickListener(this);
@@ -125,8 +131,8 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
             alertDialogFragment.setTargetFragment(this, REQUEST_CLEAR_EXISTING_POINTS_FROM_DB);
             alertDialogFragment.show(getFragmentManager(), AlertDialogFragment.TAG);
         } else if (R.id.import_gpx_file_btn == v.getId()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_STORAGE_READ_WRITE_PERMISSIONS);
+            if (!Utils.hasPermissions(getContext(), REQUIRED_PERMISSIONS)) {
+                requestPermissions(REQUIRED_PERMISSIONS, REQUEST_PERMISSIONS);
             } else {
                 pickFile();
             }
@@ -135,7 +141,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_STORAGE_READ_WRITE_PERMISSIONS && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+        if (Utils.hasPermissions(getContext(), REQUIRED_PERMISSIONS)) {
             pickFile();
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -147,7 +153,8 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
         if (REQUEST_PICK_GPX_FILE == requestCode && resultCode == Activity.RESULT_OK) {
             final Uri uri = data.getData();
             final String mimeType = getContext().getContentResolver().getType(uri);
-            if (BuildConfig.DEBUG) Log.d(TAG, "Picked file of type: " + mimeType + " and URI: " + uri.getPath());
+            if (BuildConfig.DEBUG)
+                Log.d(TAG, "Picked file of type: " + mimeType + " and URI: " + uri.getPath());
 
             // Check that the file is a GPX file
             if (!uri.getPath().matches(".*\\.gpx$")
@@ -223,7 +230,8 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
     // ARDbHelper.ARDbHelperListener implementation
     @Override
     public void onPointsInserted(long insertedPointsNumber) {
-        if (BuildConfig.DEBUG) Log.d(TAG, "Added " + insertedPointsNumber + " points in the database");
+        if (BuildConfig.DEBUG)
+            Log.d(TAG, "Added " + insertedPointsNumber + " points in the database");
         showProgressBar(false, null);
         if (!mFragmentIsPaused) {
             AlertDialogFragment.newInstance(getString(R.string.gpx_parsed_alert_title), String.format(getString(R.string.gpx_points_imported_alert_message), insertedPointsNumber)).show(getFragmentManager(), AlertDialogFragment.TAG);
@@ -232,7 +240,8 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
 
     /**
      * Shows or hides the {@link ProgressBar}.
-     * @param show <b>true</b> to show the progress bar. <b>false</b> to hide it.
+     *
+     * @param show    <b>true</b> to show the progress bar. <b>false</b> to hide it.
      * @param message the message to display in the {@link TextView} associated to the progress bar. <b>null</b> to show the progress bar without any message or when hiding the progress bar.
      */
     private void showProgressBar(boolean show, @Nullable String message) {
